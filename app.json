@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "EarHealth",
+    "slug": "earhealth",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "earhealth",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "entryPoint": "./index.js",
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.earhealth.app"
+    },
+    "android": {
+      "package": "com.earhealth.app"
+    }
+  }
+}
