@@ -1,27 +1,18 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
-const { width } = Dimensions.get('window');
-
-type TabName = 'home' | 'hearing' | 'account' | 'plans';
+type TabName = 'home' | 'hearing' | 'cleaning' | 'account' | 'plans';
 type EarSide = 'left' | 'right';
 
 type HearingResponse = {
   left: boolean;
   right: boolean;
-};
-
-type Friend = {
-  id: number;
-  name: string;
-  streak: number;
 };
 
 type Arena = {
@@ -34,6 +25,13 @@ type Arena = {
 type Frequency = {
   hz: number;
   label: string;
+  weight: number;
+};
+
+type CleaningCard = {
+  title: string;
+  body: string;
+  cta?: string;
 };
 
 const ARENAS: Arena[] = [
@@ -50,148 +48,134 @@ const ARENAS: Arena[] = [
 ];
 
 const FREQUENCIES: Frequency[] = [
-  { hz: 250, label: 'Low' },
-  { hz: 500, label: 'Low-Mid' },
-  { hz: 1000, label: 'Mid' },
-  { hz: 2000, label: 'Mid-High' },
-  { hz: 4000, label: 'High' },
-  { hz: 8000, label: 'Ultra' },
+  { hz: 125, label: 'Sub Bass', weight: 1.0 },
+  { hz: 250, label: 'Bass', weight: 1.0 },
+  { hz: 500, label: 'Low Mid', weight: 1.0 },
+  { hz: 1000, label: 'Mid', weight: 1.0 },
+  { hz: 2000, label: 'Upper Mid', weight: 1.1 },
+  { hz: 4000, label: 'Presence', weight: 1.2 },
+  { hz: 8000, label: 'Treble', weight: 1.4 },
+  { hz: 12000, label: 'Air', weight: 1.8 },
+  { hz: 14000, label: 'High Air', weight: 2.0 },
+  { hz: 16000, label: 'Extreme', weight: 2.4 },
+  { hz: 17000, label: 'Very Extreme', weight: 2.7 },
+  { hz: 18000, label: 'Elite High', weight: 3.0 },
 ];
 
 const EDUCATIONAL_FACTS = [
-  '🧼 Earwax is actually protective. It helps keep ears clean and fights infection.',
-  '👂 Your hearing is most sensitive between 1000 and 4000 Hz.',
-  '🔊 Exposure to sounds over 85 dB can damage hearing over time.',
-  '💧 Avoid putting water directly into your ears unless using a proper method.',
-  '🎧 Taking short listening breaks can help protect long-term hearing health.',
+  '🧼 Earwax is protective and helps defend the ear canal.',
+  '👂 Human hearing is often strongest in the mid-range, not at the extremes.',
+  '🔊 Long exposure to loud audio can reduce hearing sensitivity over time.',
+  '🎧 Earbuds at high volume for long periods can make high-frequency loss worse.',
+  '💧 Clean ears gently and avoid forcing objects deep into the ear canal.',
 ];
 
 const TABS: { name: TabName; label: string; icon: string }[] = [
   { name: 'home', label: 'HOME', icon: '🏠' },
   { name: 'hearing', label: 'TEST', icon: '🎧' },
+  { name: 'cleaning', label: 'CLEAN', icon: '🧼' },
   { name: 'account', label: 'PROFILE', icon: '👤' },
   { name: 'plans', label: 'PLANS', icon: '💎' },
 ];
 
-const styles = {
-  screen: {
-    flex: 1,
-    backgroundColor: '#0f0f1e',
-  } as const,
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '900' as const,
-    color: '#00ff00',
-    marginBottom: 16,
-    letterSpacing: 1,
+const CLEANING_CARDS: CleaningCard[] = [
+  {
+    title: 'Ready to clean?',
+    body:
+      'Use your sanitation kit and follow each step in order. Swipe through the cards or tap begin to start the cleaning flow.',
+    cta: 'Start Cleaning',
   },
-  card: {
-    backgroundColor: '#1a1a2e',
-    borderRadius: 20,
-    padding: 20,
-  } as const,
-  muted: {
-    color: '#666',
-    fontWeight: '600' as const,
+  {
+    title: 'Open your sanitation kit',
+    body:
+      'You should have a cleaning tool, microfiber cloth, bamboo brush, and isopropyl alcohol cleaning fluid.',
   },
-};
+  {
+    title: 'Brush the mesh',
+    body:
+      'Spray the bamboo brush with the alcohol and hold the AirPod with the mesh facing up. Brush in circles for about 15 seconds.',
+  },
+  {
+    title: 'Blot the mesh',
+    body:
+      'Flip the AirPod and blot the mesh on our cloth, ensuring contact. Repeat this process three times total for each mesh.',
+  },
+  {
+    title: 'Clean the charging port',
+    body: 'Use our tool to scrape out any grime from the charging port.',
+  },
+  {
+    title: 'Remove residue',
+    body:
+      'Rinse the brush with distilled water, then repeat the brushing and blotting steps with distilled water to remove residue.',
+  },
+  {
+    title: 'Clean the charging case',
+    body: 'Clean the insides of the charging case with the bamboo brush.',
+  },
+  {
+    title: 'Final wipe',
+    body: 'Wipe everything with the cleaning cloth.',
+  },
+  {
+    title: 'Congratulations, you are done!',
+    body:
+      'Let the AirPods dry completely before use. Once everything is fully dry, place them back in the case.',
+    cta: 'Restart Guide',
+  },
+];
 
-function BellCurveCard({ percentile }: { percentile: number }) {
-  const chartWidth = width - 96;
-  const chartHeight = 150;
-  const markerLeft = Math.max(0, Math.min(chartWidth - 4, (percentile / 100) * chartWidth));
+function StatBar({
+  label,
+  percentage,
+  animatedValue,
+}: {
+  label: string;
+  percentage: number;
+  animatedValue: Animated.Value;
+}) {
+  const barHeight = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, Math.max(6, percentage * 1.6)],
+  });
+
+  const barColor =
+    percentage >= 100 ? '#00ff00' : percentage >= 50 ? '#ccff33' : '#3a4a3f';
 
   return (
-    <View
-      style={{
-        backgroundColor: '#1a1a2e',
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 24,
-        borderWidth: 2,
-        borderColor: '#00ff00',
-      }}
-    >
+    <View style={{ alignItems: 'center', width: 26 }}>
+      <View
+        style={{
+          height: 170,
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+        }}
+      >
+        <Animated.View
+          style={{
+            width: 18,
+            height: barHeight,
+            borderRadius: 6,
+            backgroundColor: barColor,
+            borderWidth: 1,
+            borderColor: percentage >= 50 ? '#00ff00' : '#4f6b56',
+          }}
+        />
+      </View>
+
       <Text
         style={{
-          color: '#00ff00',
-          fontWeight: '900',
-          fontSize: 14,
-          marginBottom: 14,
-          letterSpacing: 1,
+          color: '#8aa18f',
+          fontSize: 9,
+          fontWeight: '700',
+          marginTop: 8,
+          transform: [{ rotate: '-45deg' }],
+          width: 42,
+          textAlign: 'center',
         }}
       >
-        PERCENTILE RANGE
+        {label}
       </Text>
-
-      <View
-        style={{
-          height: chartHeight,
-          backgroundColor: 'rgba(0,0,0,0.35)',
-          borderRadius: 14,
-          justifyContent: 'flex-end',
-          paddingHorizontal: 16,
-          paddingBottom: 16,
-          overflow: 'hidden',
-        }}
-      >
-        <View
-          style={{
-            position: 'absolute',
-            left: markerLeft + 16,
-            top: 16,
-            bottom: 16,
-            width: 3,
-            backgroundColor: '#ffff00',
-            borderRadius: 2,
-          }}
-        />
-        <Text
-          style={{
-            position: 'absolute',
-            left: Math.max(8, markerLeft - 8),
-            top: 12,
-            color: '#ffff00',
-            fontWeight: '900',
-            fontSize: 16,
-          }}
-        >
-          {percentile}%
-        </Text>
-
-        <View
-          style={{
-            height: 70,
-            borderTopLeftRadius: 70,
-            borderTopRightRadius: 70,
-            backgroundColor: 'rgba(0,255,0,0.18)',
-            borderWidth: 2,
-            borderColor: '#00ff00',
-            borderBottomWidth: 0,
-          }}
-        />
-      </View>
-
-      <View
-        style={{
-          marginTop: 12,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-        }}
-      >
-        {['0%', '25%', '50%', '75%', '100%'].map((label) => (
-          <Text
-            key={label}
-            style={{
-              color: '#666',
-              fontSize: 11,
-              fontWeight: '600',
-            }}
-          >
-            {label}
-          </Text>
-        ))}
-      </View>
     </View>
   );
 }
@@ -205,42 +189,52 @@ export default function App() {
   const [arenaProgress, setArenaProgress] = useState(0);
   const [showArenaMap, setShowArenaMap] = useState(false);
 
-  const [selectedFrequency, setSelectedFrequency] = useState<number>(250);
+  const [selectedFrequency, setSelectedFrequency] = useState<number>(FREQUENCIES[0].hz);
   const [currentEar, setCurrentEar] = useState<EarSide>('left');
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [hearingResponses, setHearingResponses] = useState<Record<number, HearingResponse>>({});
   const [testComplete, setTestComplete] = useState(false);
+  const [hearingScore, setHearingScore] = useState(0);
   const [hearingPercentile, setHearingPercentile] = useState(0);
   const [hearingRank, setHearingRank] = useState('');
+  const [isPro] = useState(false);
 
-  const [isPro, setIsPro] = useState(false);
-  const [friends] = useState<Friend[]>([
-    { id: 1, name: 'Alice', streak: 42 },
-    { id: 2, name: 'Bob', streak: 28 },
-    { id: 3, name: 'Charlie', streak: 35 },
-    { id: 4, name: 'Diana', streak: 21 },
-    { id: 5, name: 'Eve', streak: 38 },
-  ]);
+  const [cleaningStep, setCleaningStep] = useState(0);
 
   const logoAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const bellCurveAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const summaryFade = useRef(new Animated.Value(0)).current;
+  const summaryRise = useRef(new Animated.Value(18)).current;
+  const cleaningFade = useRef(new Animated.Value(1)).current;
+  const statBars = useRef(FREQUENCIES.map(() => new Animated.Value(0))).current;
 
   const randomFact = useMemo(() => {
     const index = Math.floor(Math.random() * EDUCATIONAL_FACTS.length);
     return EDUCATIONAL_FACTS[index];
   }, []);
 
-  const sortedFriends = useMemo(() => {
-    return [...friends].sort((a, b) => b.streak - a.streak);
-  }, [friends]);
-
   const completedFrequencyCount = useMemo(() => {
     return Object.values(hearingResponses).filter(
       (response) => response.left || response.right
     ).length;
   }, [hearingResponses]);
+
+  const frequencyResults = useMemo(() => {
+    return FREQUENCIES.map((freq) => {
+      const response = hearingResponses[freq.hz];
+      const heardCount = (response?.left ? 1 : 0) + (response?.right ? 1 : 0);
+      const percentage = (heardCount / 2) * 100;
+
+      return {
+        ...freq,
+        heardCount,
+        percentage,
+      };
+    });
+  }, [hearingResponses]);
+
+  const currentCleaningCard = CLEANING_CARDS[cleaningStep];
+  const cleaningProgress = ((cleaningStep + 1) / CLEANING_CARDS.length) * 100;
 
   useEffect(() => {
     const pulseAnimation = Animated.loop(
@@ -263,10 +257,10 @@ export default function App() {
     const timer = setTimeout(() => {
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 500,
+        duration: 450,
         useNativeDriver: true,
       }).start(() => setShowSplash(false));
-    }, 2500);
+    }, 2400);
 
     return () => {
       clearTimeout(timer);
@@ -282,36 +276,64 @@ export default function App() {
     }, 500);
   };
 
-  const completeHearingTest = (updatedResponses: Record<number, HearingResponse>) => {
-    const heardCount = Object.values(updatedResponses).filter(
-      (response) => response.left || response.right
-    ).length;
-
-    const percentile = Math.round((heardCount / FREQUENCIES.length) * 100);
-    setHearingPercentile(percentile);
-
-    if (percentile >= 95) setHearingRank('Perfect Hearing');
-    else if (percentile >= 85) setHearingRank('Excellent');
-    else if (percentile >= 75) setHearingRank('Great');
-    else if (percentile >= 65) setHearingRank('Good');
-    else if (percentile >= 50) setHearingRank('Average');
-    else if (percentile >= 35) setHearingRank('Below Average');
-    else setHearingRank('Needs Improvement');
-
-    setTestComplete(true);
+  const animateResults = () => {
+    summaryFade.setValue(0);
+    summaryRise.setValue(18);
+    statBars.forEach((bar) => bar.setValue(0));
 
     Animated.parallel([
-      Animated.timing(bellCurveAnim, {
+      Animated.timing(summaryFade, {
         toValue: 1,
-        duration: 800,
+        duration: 450,
         useNativeDriver: true,
       }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 800,
+      Animated.timing(summaryRise, {
+        toValue: 0,
+        duration: 450,
         useNativeDriver: true,
       }),
     ]).start();
+
+    Animated.stagger(
+      55,
+      statBars.map((bar) =>
+        Animated.timing(bar, {
+          toValue: 1,
+          duration: 420,
+          useNativeDriver: false,
+        })
+      )
+    ).start();
+  };
+
+  const completeHearingTest = (updatedResponses: Record<number, HearingResponse>) => {
+    let weightedEarned = 0;
+    let weightedTotal = 0;
+
+    FREQUENCIES.forEach((freq) => {
+      const response = updatedResponses[freq.hz];
+      const heardCount = (response?.left ? 1 : 0) + (response?.right ? 1 : 0);
+      const normalizedScore = heardCount / 2;
+
+      weightedEarned += normalizedScore * freq.weight;
+      weightedTotal += freq.weight;
+    });
+
+    const score = Math.round((weightedEarned / weightedTotal) * 100);
+    const percentile = Math.round((weightedEarned / weightedTotal) * 100);
+
+    setHearingScore(score);
+    setHearingPercentile(percentile);
+
+    if (score >= 92) setHearingRank('Exceptional Range');
+    else if (score >= 82) setHearingRank('Very Strong');
+    else if (score >= 70) setHearingRank('Above Average');
+    else if (score >= 55) setHearingRank('Moderate Range');
+    else if (score >= 40) setHearingRank('Limited High-End Range');
+    else setHearingRank('Needs Improvement');
+
+    setTestComplete(true);
+    animateResults();
   };
 
   const handleHearingResponse = (heard: boolean) => {
@@ -343,12 +365,14 @@ export default function App() {
   const resetHearingTest = () => {
     setTestComplete(false);
     setHearingResponses({});
-    setSelectedFrequency(250);
+    setSelectedFrequency(FREQUENCIES[0].hz);
     setCurrentEar('left');
+    setHearingScore(0);
     setHearingPercentile(0);
     setHearingRank('');
-    bellCurveAnim.setValue(0);
-    scaleAnim.setValue(0.8);
+    summaryFade.setValue(0);
+    summaryRise.setValue(18);
+    statBars.forEach((bar) => bar.setValue(0));
   };
 
   const completeToday = () => {
@@ -362,6 +386,37 @@ export default function App() {
       setCurrentArena(currentArena + 1);
       setArenaProgress(0);
     }
+  };
+
+  const animateToCleaningStep = (nextStep: number) => {
+    Animated.timing(cleaningFade, {
+      toValue: 0,
+      duration: 180,
+      useNativeDriver: true,
+    }).start(() => {
+      setCleaningStep(nextStep);
+      Animated.timing(cleaningFade, {
+        toValue: 1,
+        duration: 220,
+        useNativeDriver: true,
+      }).start();
+    });
+  };
+
+  const nextCleaningStep = () => {
+    if (cleaningStep < CLEANING_CARDS.length - 1) {
+      animateToCleaningStep(cleaningStep + 1);
+    }
+  };
+
+  const prevCleaningStep = () => {
+    if (cleaningStep > 0) {
+      animateToCleaningStep(cleaningStep - 1);
+    }
+  };
+
+  const restartCleaning = () => {
+    animateToCleaningStep(0);
   };
 
   if (showSplash) {
@@ -445,7 +500,7 @@ export default function App() {
   }
 
   return (
-    <View style={styles.screen}>
+    <View style={{ flex: 1, backgroundColor: '#0f0f1e' }}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingTop: 24, paddingBottom: 120 }}
@@ -686,7 +741,18 @@ export default function App() {
             )}
 
             <View style={{ marginBottom: 36 }}>
-              <Text style={styles.sectionTitle}>🏆 ACHIEVEMENTS</Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '900',
+                  color: '#00ff00',
+                  marginBottom: 16,
+                  letterSpacing: 1,
+                }}
+              >
+                🏆 ACHIEVEMENTS
+              </Text>
+
               <View
                 style={{
                   backgroundColor: '#1a1a2e',
@@ -702,58 +768,6 @@ export default function App() {
                   Coming Soon 🚀
                 </Text>
               </View>
-            </View>
-
-            <View>
-              <Text style={styles.sectionTitle}>🏅 LEADERBOARD</Text>
-
-              {sortedFriends.map((friend, index) => (
-                <View
-                  key={friend.id}
-                  style={{
-                    backgroundColor: '#1a1a2e',
-                    borderRadius: 14,
-                    padding: 16,
-                    marginBottom: 10,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderLeftWidth: 3,
-                    borderLeftColor:
-                      index === 0 ? '#ffff00' : index === 1 ? '#00ffff' : '#00ff00',
-                  }}
-                >
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 22,
-                        backgroundColor:
-                          index === 0 ? '#ffff00' : index === 1 ? '#00ffff' : '#00ff00',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        marginRight: 14,
-                      }}
-                    >
-                      <Text style={{ fontWeight: '900', fontSize: 16, color: '#000' }}>
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                      </Text>
-                    </View>
-
-                    <View>
-                      <Text style={{ fontWeight: '700', color: '#fff', fontSize: 15 }}>
-                        {friend.name}
-                      </Text>
-                      <Text style={{ color: '#666', fontSize: 12, marginTop: 2 }}>
-                        {friend.streak} day streak
-                      </Text>
-                    </View>
-                  </View>
-
-                  <Text style={{ color: '#00ff00', fontWeight: '900', fontSize: 16 }}>🔥</Text>
-                </View>
-              ))}
             </View>
           </View>
         )}
@@ -779,7 +793,7 @@ export default function App() {
                 fontWeight: '600',
               }}
             >
-              Check your hearing range
+              Check your hearing range across much tougher high-end frequencies
             </Text>
 
             {!testComplete ? (
@@ -822,13 +836,24 @@ export default function App() {
                   <Text
                     style={{
                       color: '#666',
-                      marginBottom: 32,
+                      marginBottom: 12,
                       fontSize: 13,
                       letterSpacing: 1,
                       fontWeight: '600',
                     }}
                   >
                     Hz • {FREQUENCIES.find((f) => f.hz === selectedFrequency)?.label}
+                  </Text>
+
+                  <Text
+                    style={{
+                      color: '#7e8f81',
+                      marginBottom: 30,
+                      fontSize: 12,
+                      lineHeight: 18,
+                    }}
+                  >
+                    Higher frequencies are weighted more heavily, so late-stage tones matter more.
                   </Text>
 
                   <TouchableOpacity
@@ -934,104 +959,161 @@ export default function App() {
             ) : (
               <Animated.View
                 style={{
-                  opacity: bellCurveAnim,
-                  transform: [{ scale: scaleAnim }],
+                  opacity: summaryFade,
+                  transform: [{ translateY: summaryRise }],
                 }}
               >
                 <View
                   style={{
-                    backgroundColor: '#1a1a2e',
-                    borderRadius: 24,
-                    padding: 28,
-                    marginBottom: 24,
-                    borderWidth: 2,
-                    borderColor: '#00ff00',
+                    backgroundColor: '#161d18',
+                    borderRadius: 18,
+                    paddingVertical: 28,
+                    paddingHorizontal: 18,
+                    marginBottom: 20,
+                    alignItems: 'center',
+                    borderWidth: 1.5,
+                    borderColor: '#2b4330',
                   }}
                 >
                   <Text
                     style={{
-                      fontSize: 12,
-                      color: '#666',
-                      textAlign: 'center',
-                      marginBottom: 16,
-                      textTransform: 'uppercase',
-                      letterSpacing: 2,
-                      fontWeight: '800',
+                      fontSize: 20,
+                      color: '#e5f7e7',
+                      fontWeight: '500',
+                      marginBottom: 6,
                     }}
                   >
-                    Your Score
+                    Hearing Score
+                  </Text>
+
+                  <Text
+                    style={{
+                      fontSize: 84,
+                      color: '#00ff00',
+                      fontWeight: '900',
+                      lineHeight: 90,
+                    }}
+                  >
+                    {hearingScore}
+                  </Text>
+
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      color: '#c8d8cb',
+                      fontWeight: '700',
+                      marginTop: -2,
+                    }}
+                  >
+                    / 100
+                  </Text>
+
+                  <Text
+                    style={{
+                      fontSize: 28,
+                      color: '#ffffff',
+                      fontWeight: '800',
+                      marginTop: 14,
+                    }}
+                  >
+                    {hearingPercentile}% session percentile
+                  </Text>
+
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: '#8aa18f',
+                      fontWeight: '600',
+                      marginTop: 10,
+                    }}
+                  >
+                    {hearingRank}
+                  </Text>
+
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: '#68806e',
+                      fontWeight: '600',
+                      marginTop: 12,
+                    }}
+                  >
+                    {completedFrequencyCount} of {FREQUENCIES.length} tested tones detected
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    backgroundColor: '#161d18',
+                    borderRadius: 18,
+                    padding: 18,
+                    marginBottom: 24,
+                    borderWidth: 1.5,
+                    borderColor: '#2b4330',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 17,
+                      color: '#e8f5ea',
+                      fontWeight: '800',
+                      marginBottom: 16,
+                    }}
+                  >
+                    Hearing Statistics
                   </Text>
 
                   <View
                     style={{
                       flexDirection: 'row',
-                      alignItems: 'flex-start',
-                      justifyContent: 'center',
-                      marginBottom: 24,
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-end',
+                      paddingTop: 8,
+                      paddingHorizontal: 2,
+                    }}
+                  >
+                    {frequencyResults.map((result, index) => (
+                      <StatBar
+                        key={result.hz}
+                        label={`${
+                          Math.round(result.hz / 1000) >= 1
+                            ? `${result.hz / 1000}k`
+                            : result.hz
+                        }`}
+                        percentage={result.percentage}
+                        animatedValue={statBars[index]}
+                      />
+                    ))}
+                  </View>
+
+                  <View
+                    style={{
+                      marginTop: 18,
+                      paddingTop: 14,
+                      borderTopWidth: 1,
+                      borderTopColor: '#26362a',
                     }}
                   >
                     <Text
                       style={{
-                        fontSize: 80,
-                        fontWeight: '900',
-                        color: '#00ff00',
-                        letterSpacing: -2,
+                        color: '#8aa18f',
+                        fontSize: 12,
+                        lineHeight: 18,
                       }}
                     >
-                      {hearingPercentile}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 28,
-                        color: '#666',
-                        marginTop: 8,
-                        marginLeft: 6,
-                        fontWeight: '700',
-                      }}
-                    >
-                      %
-                    </Text>
-                  </View>
-
-                  <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                    <Text
-                      style={{
-                        fontSize: 26,
-                        fontWeight: '900',
-                        color:
-                          hearingPercentile >= 85
-                            ? '#00ff00'
-                            : hearingPercentile >= 70
-                            ? '#ffff00'
-                            : '#ff6b6b',
-                        marginBottom: 10,
-                      }}
-                    >
-                      {hearingRank}
-                    </Text>
-
-                    <Text style={{ color: '#888', fontSize: 13, fontWeight: '600' }}>
-                      {hearingPercentile >= 95
-                        ? 'Perfect! Exceptional hearing.'
-                        : hearingPercentile >= 85
-                        ? 'Great! Higher than average.'
-                        : hearingPercentile >= 70
-                        ? 'Good hearing health.'
-                        : 'Protect your ears more.'}
+                      Each bar uses actual left/right responses from this test. Full-height bars mean both ears detected that tone.
                     </Text>
                   </View>
                 </View>
 
-                <BellCurveCard percentile={hearingPercentile} />
-
                 <View
                   style={{
-                    backgroundColor: '#1a1a2e',
-                    borderRadius: 20,
-                    padding: 20,
+                    backgroundColor: '#161d18',
+                    borderRadius: 18,
+                    padding: 18,
                     marginBottom: 24,
-                    borderWidth: 1,
-                    borderColor: '#333',
+                    borderWidth: 1.5,
+                    borderColor: '#2b4330',
                   }}
                 >
                   <Text
@@ -1044,66 +1126,60 @@ export default function App() {
                       letterSpacing: 1,
                     }}
                   >
-                    Frequency Response
+                    Frequency Breakdown
                   </Text>
 
-                  {FREQUENCIES.map((freq) => {
-                    const response = hearingResponses[freq.hz];
-                    const heardCount = (response?.left ? 1 : 0) + (response?.right ? 1 : 0);
-                    const percentage = (heardCount / 2) * 100;
-
-                    return (
-                      <View key={freq.hz} style={{ marginBottom: 18 }}>
-                        <View
+                  {frequencyResults.map((freq) => (
+                    <View key={freq.hz} style={{ marginBottom: 18 }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          marginBottom: 8,
+                        }}
+                      >
+                        <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
+                          {freq.hz} Hz
+                        </Text>
+                        <Text
                           style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            marginBottom: 8,
+                            color:
+                              freq.percentage === 100
+                                ? '#00ff00'
+                                : freq.percentage === 50
+                                ? '#ccff33'
+                                : '#5f7564',
+                            fontWeight: '900',
+                            fontSize: 14,
                           }}
                         >
-                          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
-                            {freq.hz} Hz
-                          </Text>
-                          <Text
-                            style={{
-                              color:
-                                percentage === 100
-                                  ? '#00ff00'
-                                  : percentage === 50
-                                  ? '#ffff00'
-                                  : '#ff6b6b',
-                              fontWeight: '900',
-                              fontSize: 14,
-                            }}
-                          >
-                            {percentage.toFixed(0)}%
-                          </Text>
-                        </View>
-
-                        <View
-                          style={{
-                            height: 8,
-                            backgroundColor: '#333',
-                            borderRadius: 4,
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <View
-                            style={{
-                              width: `${percentage}%`,
-                              height: '100%',
-                              backgroundColor:
-                                percentage === 100
-                                  ? '#00ff00'
-                                  : percentage === 50
-                                  ? '#ffff00'
-                                  : '#ff6b6b',
-                            }}
-                          />
-                        </View>
+                          {freq.percentage.toFixed(0)}%
+                        </Text>
                       </View>
-                    );
-                  })}
+
+                      <View
+                        style={{
+                          height: 8,
+                          backgroundColor: '#243127',
+                          borderRadius: 4,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: `${freq.percentage}%`,
+                            height: '100%',
+                            backgroundColor:
+                              freq.percentage === 100
+                                ? '#00ff00'
+                                : freq.percentage === 50
+                                ? '#ccff33'
+                                : '#46594a',
+                          }}
+                        />
+                      </View>
+                    </View>
+                  ))}
                 </View>
 
                 <TouchableOpacity
@@ -1129,6 +1205,269 @@ export default function App() {
                 </TouchableOpacity>
               </Animated.View>
             )}
+          </View>
+        )}
+
+        {currentTab === 'cleaning' && (
+          <View style={{ paddingHorizontal: 18 }}>
+            <Text
+              style={{
+                fontSize: 40,
+                fontWeight: '900',
+                color: '#ffffff',
+                marginBottom: 10,
+              }}
+            >
+              🧼 Cleaning
+            </Text>
+
+            <Text
+              style={{
+                fontSize: 13,
+                color: '#666',
+                marginBottom: 22,
+                fontWeight: '600',
+                lineHeight: 20,
+              }}
+            >
+              Pro feature preview. Later this will unlock for paid Pro users or for kit owners who redeem their unique 6-digit code.
+            </Text>
+
+            <View
+              style={{
+                backgroundColor: '#1a1a2e',
+                borderRadius: 14,
+                padding: 16,
+                marginBottom: 18,
+                borderWidth: 1,
+                borderColor: '#2b4330',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#8aa18f',
+                  marginBottom: 10,
+                  fontSize: 12,
+                  fontWeight: '700',
+                  letterSpacing: 0.5,
+                }}
+              >
+                STEP {cleaningStep + 1} / {CLEANING_CARDS.length}
+              </Text>
+
+              <View
+                style={{
+                  height: 10,
+                  backgroundColor: '#333',
+                  borderRadius: 5,
+                  overflow: 'hidden',
+                }}
+              >
+                <View
+                  style={{
+                    width: `${cleaningProgress}%`,
+                    height: '100%',
+                    backgroundColor: '#00ff00',
+                  }}
+                />
+              </View>
+            </View>
+
+            <Animated.View
+              style={{
+                opacity: cleaningFade,
+                backgroundColor: '#161d18',
+                borderRadius: 22,
+                padding: 22,
+                borderWidth: 1.5,
+                borderColor: '#2b4330',
+                marginBottom: 18,
+              }}
+            >
+              <Text
+                style={{
+                  color: '#00ff00',
+                  fontSize: 12,
+                  fontWeight: '800',
+                  letterSpacing: 1.2,
+                  marginBottom: 12,
+                }}
+              >
+                CLEANING GUIDE
+              </Text>
+
+              <Text
+                style={{
+                  color: '#ffffff',
+                  fontSize: 28,
+                  fontWeight: '900',
+                  lineHeight: 34,
+                  marginBottom: 14,
+                }}
+              >
+                {currentCleaningCard.title}
+              </Text>
+
+              <Text
+                style={{
+                  color: '#cfd8d1',
+                  fontSize: 15,
+                  lineHeight: 24,
+                  marginBottom: 20,
+                }}
+              >
+                {currentCleaningCard.body}
+              </Text>
+
+              <View
+                style={{
+                  height: 220,
+                  borderRadius: 18,
+                  borderWidth: 2,
+                  borderColor: '#35503b',
+                  borderStyle: 'dashed',
+                  backgroundColor: '#0f0f1e',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: 20,
+                  paddingHorizontal: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 46,
+                    marginBottom: 10,
+                  }}
+                >
+                  🎥
+                </Text>
+                <Text
+                  style={{
+                    color: '#ffffff',
+                    fontSize: 16,
+                    fontWeight: '800',
+                    marginBottom: 6,
+                    textAlign: 'center',
+                  }}
+                >
+                  Video placeholder
+                </Text>
+                <Text
+                  style={{
+                    color: '#718378',
+                    fontSize: 12,
+                    textAlign: 'center',
+                    lineHeight: 18,
+                  }}
+                >
+                  Drop your cleaning-step demo here later
+                </Text>
+              </View>
+
+              {cleaningStep === 0 ? (
+                <TouchableOpacity
+                  onPress={nextCleaningStep}
+                  style={{
+                    backgroundColor: '#00ff00',
+                    borderRadius: 14,
+                    paddingVertical: 16,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#000',
+                      fontWeight: '900',
+                      fontSize: 16,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {currentCleaningCard.cta || 'Begin'}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={{ flexDirection: 'row' }}>
+                  <TouchableOpacity
+                    onPress={prevCleaningStep}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#2a2f2d',
+                      borderRadius: 14,
+                      paddingVertical: 16,
+                      alignItems: 'center',
+                      marginRight: 6,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: '#fff',
+                        fontWeight: '800',
+                        fontSize: 15,
+                      }}
+                    >
+                      ← Back
+                    </Text>
+                  </TouchableOpacity>
+
+                  {cleaningStep < CLEANING_CARDS.length - 1 ? (
+                    <TouchableOpacity
+                      onPress={nextCleaningStep}
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#00ff00',
+                        borderRadius: 14,
+                        paddingVertical: 16,
+                        alignItems: 'center',
+                        marginLeft: 6,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#000',
+                          fontWeight: '900',
+                          fontSize: 15,
+                        }}
+                      >
+                        Next →
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={restartCleaning}
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#00ff00',
+                        borderRadius: 14,
+                        paddingVertical: 16,
+                        alignItems: 'center',
+                        marginLeft: 6,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: '#000',
+                          fontWeight: '900',
+                          fontSize: 15,
+                        }}
+                      >
+                        {currentCleaningCard.cta || 'Restart'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </Animated.View>
+
+            <Text
+              style={{
+                color: '#607162',
+                fontSize: 12,
+                lineHeight: 18,
+                marginBottom: 10,
+              }}
+            >
+              Swipe-style flow is mocked here as step cards with fade transitions. You can later replace the placeholder block with real embedded videos.
+            </Text>
           </View>
         )}
 
@@ -1210,7 +1549,17 @@ export default function App() {
             </View>
 
             <View style={{ marginBottom: 32 }}>
-              <Text style={styles.sectionTitle}>📊 STATISTICS</Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '900',
+                  color: '#00ff00',
+                  marginBottom: 16,
+                  letterSpacing: 1,
+                }}
+              >
+                📊 STATISTICS
+              </Text>
 
               <View
                 style={{
@@ -1306,7 +1655,17 @@ export default function App() {
             </View>
 
             <View>
-              <Text style={styles.sectionTitle}>⚙️ SETTINGS</Text>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '900',
+                  color: '#00ff00',
+                  marginBottom: 16,
+                  letterSpacing: 1,
+                }}
+              >
+                ⚙️ SETTINGS
+              </Text>
 
               <TouchableOpacity
                 style={{
@@ -1350,211 +1709,401 @@ export default function App() {
 
         {currentTab === 'plans' && (
           <View style={{ paddingHorizontal: 18 }}>
-            <Text
-              style={{
-                fontSize: 40,
-                fontWeight: '900',
-                color: '#ffffff',
-                marginBottom: 32,
-              }}
-            >
-              💎 Plans
-            </Text>
-
-            <View
-              style={{
-                backgroundColor: isPro ? '#00ff00' : '#333',
-                borderRadius: 16,
-                padding: 20,
-                marginBottom: 32,
-                borderWidth: 2,
-                borderColor: isPro ? '#00ff00' : '#555',
-                alignItems: 'center',
-              }}
-            >
+            <View style={{ alignItems: 'center', marginBottom: 34 }}>
               <Text
                 style={{
-                  fontSize: 16,
+                  fontSize: 42,
                   fontWeight: '900',
-                  color: isPro ? '#000' : '#fff',
-                  marginBottom: 8,
+                  color: '#ffffff',
+                  textAlign: 'center',
+                  marginBottom: 10,
+                  lineHeight: 48,
                 }}
               >
-                {isPro ? '⭐ PRO MEMBER' : '👤 BASIC MEMBER'}
+                Start Soundr for free.
               </Text>
+
               <Text
                 style={{
-                  color: isPro ? '#000' : '#888',
-                  fontSize: 12,
-                  fontWeight: '600',
+                  fontSize: 15,
+                  color: '#8aa18f',
+                  textAlign: 'center',
+                  lineHeight: 23,
+                  maxWidth: 320,
+                  fontWeight: '500',
                 }}
               >
-                {isPro ? 'All features unlocked' : 'Upgrade for more'}
-              </Text>
-            </View>
-
-            <View
-              style={{
-                backgroundColor: '#1a1a2e',
-                borderRadius: 16,
-                padding: 20,
-                marginBottom: 20,
-                borderWidth: 2,
-                borderColor: isPro ? '#333' : '#00ff00',
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: '900',
-                  color: '#fff',
-                  marginBottom: 8,
-                }}
-              >
-                Free
-              </Text>
-              <Text
-                style={{
-                  color: '#666',
-                  marginBottom: 16,
-                  fontSize: 13,
-                  fontWeight: '600',
-                }}
-              >
-                Getting started
+                Build your streak, test your hearing, and unlock deeper insights when
+                you upgrade.
               </Text>
 
-              <View style={{ marginBottom: 18 }}>
-                <Text style={{ color: '#00ff00', marginBottom: 8, fontWeight: '700' }}>
-                  ✓ Daily streak tracking
-                </Text>
-                <Text style={{ color: '#00ff00', marginBottom: 8, fontWeight: '700' }}>
-                  ✓ Basic hearing test
-                </Text>
-                <Text style={{ color: '#00ff00', marginBottom: 8, fontWeight: '700' }}>
-                  ✓ Leaderboard
-                </Text>
-                <Text style={{ color: '#666', fontWeight: '700' }}>✗ Advanced features</Text>
-              </View>
-
-              <TouchableOpacity
-                style={{
-                  backgroundColor: isPro ? '#333' : '#00ff00',
-                  borderRadius: 10,
-                  paddingVertical: 12,
-                  alignItems: 'center',
-                }}
-                disabled
-              >
-                <Text
-                  style={{
-                    color: isPro ? '#666' : '#000',
-                    fontWeight: '900',
-                    fontSize: 14,
-                  }}
-                >
-                  {isPro ? 'CURRENT PLAN' : 'USING NOW'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View
-              style={{
-                backgroundColor: '#1a1a2e',
-                borderRadius: 16,
-                padding: 20,
-                borderWidth: 2,
-                borderColor: isPro ? '#00ff00' : '#00ffff',
-              }}
-            >
               <View
                 style={{
+                  marginTop: 20,
+                  backgroundColor: '#1a1a2e',
+                  borderRadius: 999,
+                  padding: 4,
                   flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 12,
+                  borderWidth: 1,
+                  borderColor: '#2b4330',
                 }}
               >
-                <Text
-                  style={{
-                    fontSize: 18,
-                    fontWeight: '900',
-                    color: '#fff',
-                  }}
-                >
-                  Pro
-                </Text>
-
                 <View
                   style={{
-                    backgroundColor: '#00ffff',
-                    borderRadius: 6,
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
+                    backgroundColor: '#00ff00',
+                    borderRadius: 999,
+                    paddingVertical: 8,
+                    paddingHorizontal: 18,
                   }}
                 >
                   <Text
                     style={{
                       color: '#000',
-                      fontSize: 10,
-                      fontWeight: '900',
-                      letterSpacing: 0.5,
+                      fontWeight: '800',
+                      fontSize: 13,
                     }}
                   >
-                    POPULAR
+                    Monthly
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    borderRadius: 999,
+                    paddingVertical: 8,
+                    paddingHorizontal: 18,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#6d7b70',
+                      fontWeight: '700',
+                      fontSize: 13,
+                    }}
+                  >
+                    Annually
                   </Text>
                 </View>
               </View>
+            </View>
 
-              <Text
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'stretch',
+                marginBottom: 20,
+              }}
+            >
+              <View
                 style={{
-                  color: '#666',
-                  marginBottom: 16,
-                  fontSize: 13,
-                  fontWeight: '600',
-                }}
-              >
-                $12.99 / year
-              </Text>
-
-              <View style={{ marginBottom: 18 }}>
-                <Text style={{ color: '#00ff00', marginBottom: 8, fontWeight: '700' }}>
-                  ✓ Everything in Basic
-                </Text>
-                <Text style={{ color: '#00ff00', marginBottom: 8, fontWeight: '700' }}>
-                  ✓ Advanced hearing tests
-                </Text>
-                <Text style={{ color: '#00ff00', marginBottom: 8, fontWeight: '700' }}>
-                  ✓ Personalized insights
-                </Text>
-                <Text style={{ color: '#00ff00', marginBottom: 8, fontWeight: '700' }}>
-                  ✓ Ad-free experience
-                </Text>
-                <Text style={{ color: '#00ff00', fontWeight: '700' }}>
-                  ✓ Priority support
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                onPress={() => setIsPro(!isPro)}
-                style={{
-                  backgroundColor: isPro ? '#333' : '#00ffff',
-                  borderRadius: 10,
-                  paddingVertical: 12,
-                  alignItems: 'center',
+                  width: '48%',
+                  backgroundColor: '#161d18',
+                  borderRadius: 22,
+                  padding: 16,
+                  borderWidth: 1.5,
+                  borderColor: '#2b4330',
+                  minHeight: 470,
                 }}
               >
                 <Text
                   style={{
-                    color: isPro ? '#666' : '#000',
-                    fontWeight: '900',
-                    fontSize: 14,
+                    color: '#dce8df',
+                    fontSize: 17,
+                    fontWeight: '800',
+                    marginBottom: 16,
                   }}
                 >
-                  {isPro ? '✓ CURRENT PLAN' : 'UPGRADE NOW'}
+                  Basic
                 </Text>
-              </TouchableOpacity>
+
+                <Text
+                  style={{
+                    color: '#ffffff',
+                    fontSize: 40,
+                    fontWeight: '900',
+                    lineHeight: 44,
+                    marginBottom: 16,
+                  }}
+                >
+                  Free
+                </Text>
+
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={{
+                    backgroundColor: '#0f0f1e',
+                    borderRadius: 12,
+                    paddingVertical: 14,
+                    alignItems: 'center',
+                    marginBottom: 16,
+                    borderWidth: 1,
+                    borderColor: '#2d3b30',
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#ffffff',
+                      fontWeight: '800',
+                      fontSize: 15,
+                    }}
+                  >
+                    Get Started
+                  </Text>
+                </TouchableOpacity>
+
+                <Text
+                  style={{
+                    color: '#8aa18f',
+                    fontSize: 13,
+                    marginBottom: 16,
+                    fontWeight: '500',
+                    lineHeight: 20,
+                  }}
+                >
+                  Essential features for everyday ear care.
+                </Text>
+
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: '#26362a',
+                    marginBottom: 16,
+                  }}
+                />
+
+                <Text
+                  style={{
+                    color: '#dce8df',
+                    fontSize: 13,
+                    fontWeight: '800',
+                    marginBottom: 12,
+                  }}
+                >
+                  Includes
+                </Text>
+
+                {[
+                  'Daily streak tracking',
+                  'Standard hearing test',
+                  'Arena progress system',
+                  'Basic account stats',
+                ].map((feature, index) => (
+                  <View
+                    key={feature}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
+                      marginBottom: index === 3 ? 0 : 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: '#00ff00',
+                        fontSize: 15,
+                        marginRight: 8,
+                        fontWeight: '900',
+                      }}
+                    >
+                      ✓
+                    </Text>
+                    <Text
+                      style={{
+                        color: '#d7e2d9',
+                        fontSize: 13,
+                        lineHeight: 19,
+                        flex: 1,
+                      }}
+                    >
+                      {feature}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+
+              <View
+                style={{
+                  width: '48%',
+                  backgroundColor: '#161d18',
+                  borderRadius: 22,
+                  padding: 16,
+                  borderWidth: 2,
+                  borderColor: '#00ff00',
+                  minHeight: 470,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    marginBottom: 16,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#ffffff',
+                      fontSize: 17,
+                      fontWeight: '800',
+                    }}
+                  >
+                    Pro
+                  </Text>
+
+                  <View
+                    style={{
+                      backgroundColor: '#00ff00',
+                      borderRadius: 999,
+                      paddingHorizontal: 8,
+                      paddingVertical: 4,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: '#000',
+                        fontSize: 9,
+                        fontWeight: '900',
+                        letterSpacing: 0.4,
+                      }}
+                    >
+                      POPULAR
+                    </Text>
+                  </View>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'flex-end',
+                    marginBottom: 16,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#ffffff',
+                      fontSize: 40,
+                      fontWeight: '900',
+                      lineHeight: 44,
+                    }}
+                  >
+                    $5.99
+                  </Text>
+                  <Text
+                    style={{
+                      color: '#8aa18f',
+                      fontSize: 15,
+                      marginLeft: 4,
+                      marginBottom: 4,
+                      fontWeight: '600',
+                    }}
+                  >
+                    / month
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={{
+                    backgroundColor: '#00ff00',
+                    borderRadius: 12,
+                    paddingVertical: 14,
+                    alignItems: 'center',
+                    marginBottom: 16,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: '#000',
+                      fontWeight: '900',
+                      fontSize: 15,
+                    }}
+                  >
+                    Upgrade to Pro
+                  </Text>
+                </TouchableOpacity>
+
+                <Text
+                  style={{
+                    color: '#8aa18f',
+                    fontSize: 13,
+                    marginBottom: 16,
+                    fontWeight: '500',
+                    lineHeight: 20,
+                  }}
+                >
+                  Stronger analytics and a more advanced hearing experience.
+                </Text>
+
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: '#26362a',
+                    marginBottom: 16,
+                  }}
+                />
+
+                <Text
+                  style={{
+                    color: '#dce8df',
+                    fontSize: 13,
+                    fontWeight: '800',
+                    marginBottom: 12,
+                  }}
+                >
+                  Everything in Basic, plus...
+                </Text>
+
+                {[
+                  'Advanced hearing test ranges',
+                  'Deeper frequency breakdowns',
+                  'Expanded score insights',
+                  'Future premium analytics features',
+                ].map((feature, index) => (
+                  <View
+                    key={feature}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
+                      marginBottom: index === 3 ? 0 : 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: '#00ff00',
+                        fontSize: 15,
+                        marginRight: 8,
+                        fontWeight: '900',
+                      }}
+                    >
+                      ✓
+                    </Text>
+                    <Text
+                      style={{
+                        color: '#d7e2d9',
+                        fontSize: 13,
+                        lineHeight: 19,
+                        flex: 1,
+                      }}
+                    >
+                      {feature}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
+
+            <Text
+              style={{
+                color: '#5f7564',
+                fontSize: 12,
+                textAlign: 'center',
+                lineHeight: 18,
+                marginBottom: 10,
+              }}
+            >
+              Pricing buttons are visual only right now. Payments and subscriptions
+              have not been connected yet.
+            </Text>
           </View>
         )}
       </ScrollView>
