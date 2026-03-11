@@ -4,7 +4,7 @@ import { AppUser } from '../../store/appStore';
 
 type Props = {
   user: AppUser;
-  onSaveUsername: (nextName: string) => void;
+  onSaveUsername: (nextName: string) => Promise<{ success: boolean; message?: string }>;
   onLogout: () => void;
 };
 
@@ -15,6 +15,7 @@ export default function SettingsScreen({
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState(user.username);
+  const [error, setError] = useState('');
 
   return (
     <View style={{ paddingHorizontal: 18 }}>
@@ -85,7 +86,10 @@ export default function SettingsScreen({
             )}
 
             <TouchableOpacity
-              onPress={() => setEditing(true)}
+              onPress={() => {
+                setEditing(true);
+                setError('');
+              }}
               style={{
                 backgroundColor: '#00ff00',
                 borderRadius: 10,
@@ -131,7 +135,10 @@ export default function SettingsScreen({
           <>
             <TextInput
               value={draftName}
-              onChangeText={setDraftName}
+              onChangeText={(text) => {
+                setDraftName(text);
+                setError('');
+              }}
               placeholder="Enter your username"
               placeholderTextColor="#55705b"
               style={{
@@ -144,15 +151,29 @@ export default function SettingsScreen({
                 fontWeight: '600',
                 paddingHorizontal: 14,
                 paddingVertical: 14,
-                marginBottom: 14,
+                marginBottom: 12,
               }}
             />
+
+            {!!error && (
+              <Text
+                style={{
+                  color: '#ff7c7c',
+                  fontSize: 13,
+                  marginBottom: 14,
+                  fontWeight: '600',
+                }}
+              >
+                {error}
+              </Text>
+            )}
 
             <View style={{ flexDirection: 'row' }}>
               <TouchableOpacity
                 onPress={() => {
                   setEditing(false);
                   setDraftName(user.username);
+                  setError('');
                 }}
                 style={{
                   flex: 1,
@@ -167,11 +188,23 @@ export default function SettingsScreen({
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => {
+                onPress={async () => {
                   const trimmed = draftName.trim();
-                  if (!trimmed) return;
-                  onSaveUsername(trimmed);
+
+                  if (!trimmed) {
+                    setError('Please enter a username.');
+                    return;
+                  }
+
+                  const result = await onSaveUsername(trimmed);
+
+                  if (!result.success) {
+                    setError(result.message || 'Could not save username.');
+                    return;
+                  }
+
                   setEditing(false);
+                  setError('');
                 }}
                 style={{
                   flex: 1,

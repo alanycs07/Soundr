@@ -215,11 +215,44 @@ export default function App() {
     await saveUser(newUser);
   };
 
-  const saveUsername = async (nextName: string) => {
-    if (!user) return;
-    const updated = { ...user, username: nextName };
+  const saveUsername = async (
+    nextName: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    if (!user) {
+      return { success: false, message: 'No user found.' };
+    }
+
+    const trimmed = nextName.trim();
+
+    if (!trimmed) {
+      return { success: false, message: 'Please enter a username.' };
+    }
+
+    if (!/^[a-zA-Z0-9_]{3,16}$/.test(trimmed)) {
+      return {
+        success: false,
+        message:
+          'Username must be 3 to 16 characters and use only letters, numbers, or underscores.',
+      };
+    }
+
+    if (trimmed.toLowerCase() !== user.username.toLowerCase()) {
+      const { isUsernameTaken, updateStoredUsername } = await import('./store/userStorage');
+
+      const taken = await isUsernameTaken(trimmed);
+
+      if (taken) {
+        return { success: false, message: 'That username is already taken.' };
+      }
+
+      await updateStoredUsername(user.username, trimmed);
+    }
+
+    const updated = { ...user, username: trimmed };
     setUser(updated);
     await saveUser(updated);
+
+    return { success: true };
   };
 
   const handleLogout = async () => {

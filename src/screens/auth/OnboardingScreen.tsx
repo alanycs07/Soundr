@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { AppUser, EDUCATIONAL_FACTS, UserMode } from '../../store/appStore';
-import { redeemKitCode } from '../../store/userStorage';
+import { isUsernameTaken, redeemKitCode } from '../../store/userStorage';
 
 type AuthStage = 'splash' | 'choice' | 'code' | 'username';
 
@@ -21,8 +21,10 @@ export default function OnboardingScreen({ onComplete }: Props) {
   const [pendingMode, setPendingMode] = useState<UserMode>('basic');
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState('');
-  const [isCheckingCode, setIsCheckingCode] = useState(false);
   const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [isCheckingCode, setIsCheckingCode] = useState(false);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
   const logoAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -88,10 +90,26 @@ export default function OnboardingScreen({ onComplete }: Props) {
     setStage('username');
   };
 
-  const finishProfile = () => {
+  const finishProfile = async () => {
     const finalUsername = username.trim();
+    setUsernameError('');
 
     if (!finalUsername) {
+      setUsernameError('Please enter a username.');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]{3,16}$/.test(finalUsername)) {
+      setUsernameError(
+        'Username must be 3 to 16 characters and use only letters, numbers, or underscores.'
+      );
+      return;
+    }
+
+    const taken = await isUsernameTaken(finalUsername);
+
+    if (taken) {
+      setUsernameError('That username is already taken.');
       return;
     }
 
@@ -421,7 +439,10 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
           <TextInput
             value={username}
-            onChangeText={setUsername}
+            onChangeText={(text) => {
+              setUsername(text);
+              setUsernameError('');
+            }}
             placeholder="Enter your username"
             placeholderTextColor="#55705b"
             style={{
@@ -434,12 +455,30 @@ export default function OnboardingScreen({ onComplete }: Props) {
               fontWeight: '600',
               paddingHorizontal: 16,
               paddingVertical: 18,
-              marginBottom: 16,
+              marginBottom: 12,
             }}
           />
 
+          {!!usernameError && (
+            <Text
+              style={{
+                color: '#ff7c7c',
+                fontSize: 13,
+                marginBottom: 16,
+                fontWeight: '600',
+              }}
+            >
+              {usernameError}
+            </Text>
+          )}
+
           <TouchableOpacity
-            onPress={finishProfile}
+            onPress={async () => {
+              if (isCheckingUsername) return;
+              setIsCheckingUsername(true);
+              await finishProfile();
+              setIsCheckingUsername(false);
+            }}
             style={{
               backgroundColor: '#00ff00',
               borderRadius: 16,
@@ -447,15 +486,19 @@ export default function OnboardingScreen({ onComplete }: Props) {
               alignItems: 'center',
             }}
           >
-            <Text
-              style={{
-                color: '#000',
-                fontWeight: '900',
-                fontSize: 16,
-              }}
-            >
-              Continue
-            </Text>
+            {isCheckingUsername ? (
+              <ActivityIndicator color="#000" />
+            ) : (
+              <Text
+                style={{
+                  color: '#000',
+                  fontWeight: '900',
+                  fontSize: 16,
+                }}
+              >
+                Continue
+              </Text>
+            )}
           </TouchableOpacity>
         </>
       )}
