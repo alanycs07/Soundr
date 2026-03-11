@@ -98,6 +98,29 @@ export default function HearingTestScreen({
   handleHearingResponse,
   resetHearingTest,
 }: Props) {
+  // ✅ WORKING SOUND FUNCTION
+  const playSoundWithWebAudio = async () => {
+    try {
+      const audioContext = new (window as any).AudioContext || new (window as any).webkitAudioContext();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = selectedFrequency;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (error) {
+      console.error('Audio error:', error);
+    }
+  };
+
   const frequencyResults = frequencies.map((freq) => {
     const response = hearingResponses[freq.hz];
     const heardCount = (response?.left ? 1 : 0) + (response?.right ? 1 : 0);
@@ -194,7 +217,7 @@ export default function HearingTestScreen({
             </Text>
 
             <TouchableOpacity
-              onPress={playSound}
+              onPress={playSoundWithWebAudio}
               style={{
                 backgroundColor: '#00ff00',
                 borderRadius: 16,

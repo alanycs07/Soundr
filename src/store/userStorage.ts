@@ -26,13 +26,11 @@ export async function clearUser() {
   await AsyncStorage.removeItem(USER_KEY);
 }
 
-export async function clearAllLocalTestData() {
-  await AsyncStorage.multiRemove([
-    USER_KEY,
-    REDEEMED_CODES_KEY,
-    USERNAME_LIST_KEY,
-  ]);
-}
+export const clearAllData = async (): Promise<void> => {
+  await AsyncStorage.removeItem('users');
+  await AsyncStorage.removeItem('currentUserId');
+  await AsyncStorage.removeItem('hasLaunchedBefore');
+};
 
 export async function getRedeemedCodes(): Promise<string[]> {
   const raw = await AsyncStorage.getItem(REDEEMED_CODES_KEY);
