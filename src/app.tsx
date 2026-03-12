@@ -42,7 +42,6 @@ function deriveArenaFromStreak(streak: number) {
   const arenaCount = ARENAS.length;
   const currentArena = Math.min(Math.floor(streak / ARENA_DAYS) + 1, arenaCount);
   const arenaProgress = ((streak % ARENA_DAYS) / ARENA_DAYS) * 100;
-
   return { currentArena, arenaProgress };
 }
 
@@ -102,29 +101,30 @@ export default function App() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [existingUser, storedProgress] = await Promise.all([getUser(), getProgress()]);
-
-        let nextProgress = storedProgress;
-        const yesterday = getYesterdayKey();
-
-        if (
-          nextProgress.lastCompletedDate &&
-          nextProgress.lastCompletedDate !== getTodayKey() &&
-          nextProgress.lastCompletedDate !== yesterday &&
-          nextProgress.streak > 0
-        ) {
-          nextProgress = {
-            ...nextProgress,
-            streak: 0,
-          };
-          await saveProgress(nextProgress);
-        }
+        const existingUser = await getUser();
 
         if (existingUser) {
-          setUser(existingUser);
-        }
+          let storedProgress = await getProgress(existingUser.username);
+          const yesterday = getYesterdayKey();
 
-        setProgress(nextProgress);
+          if (
+            storedProgress.lastCompletedDate &&
+            storedProgress.lastCompletedDate !== getTodayKey() &&
+            storedProgress.lastCompletedDate !== yesterday &&
+            storedProgress.streak > 0
+          ) {
+            storedProgress = {
+              ...storedProgress,
+              streak: 0,
+            };
+            await saveProgress(existingUser.username, storedProgress);
+          }
+
+          setUser(existingUser);
+          setProgress(storedProgress);
+        } else {
+          setProgress(DEFAULT_PROGRESS);
+        }
       } finally {
         setBootLoading(false);
       }
@@ -188,6 +188,8 @@ export default function App() {
   };
 
   const awardDailyStreakIfEligible = async (incomingProgress: AppProgress) => {
+    if (!user) return;
+
     const today = getTodayKey();
     const yesterday = getYesterdayKey();
 
@@ -223,12 +225,14 @@ export default function App() {
     }
 
     setProgress(nextProgress);
-    await saveProgress(nextProgress);
+    await saveProgress(user.username, nextProgress);
   };
 
   const markHearingCompleteForToday = async () => {
+    if (!user) return;
+
     const today = getTodayKey();
-    const current = await getProgress();
+    const current = await getProgress(user.username);
 
     const todayEntry = current.dailyStatus[today] || {
       hearingDone: false,
@@ -254,8 +258,10 @@ export default function App() {
   };
 
   const markCleaningCompleteForToday = async () => {
+    if (!user) return;
+
     const today = getTodayKey();
-    const current = await getProgress();
+    const current = await getProgress(user.username);
 
     const todayEntry = current.dailyStatus[today] || {
       hearingDone: false,
@@ -390,8 +396,10 @@ export default function App() {
 
   const handleOnboardingComplete = async (newUser: AppUser) => {
     setUser(newUser);
+    setProgress(DEFAULT_PROGRESS);
     setCurrentTab('home');
     await saveUser(newUser);
+    await saveProgress(newUser.username, DEFAULT_PROGRESS);
   };
 
   const saveUsername = async (
@@ -429,13 +437,26 @@ export default function App() {
     setUser(updated);
     await saveUser(updated);
 
+    const updatedProgress = await getProgress(trimmed);
+    setProgress(updatedProgress);
+
     return { success: true };
   };
 
   const handleLogout = async () => {
     await clearUser();
     setUser(null);
+    setProgress(DEFAULT_PROGRESS);
     setCurrentTab('home');
+    setShowArenaMap(false);
+    setCleaningStep(0);
+    setTestComplete(false);
+    setHearingResponses({});
+    setSelectedFrequency(FREQUENCIES[0].hz);
+    setCurrentEar('left');
+    setHearingScore(0);
+    setHearingPercentile(0);
+    setHearingRank('');
   };
 
   if (bootLoading) {
