@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import OnboardingScreen from './screens/auth/OnboardingScreen';
+import AboutScreen from './screens/main/AboutScreen';
 import CleaningScreen from './screens/main/CleaningScreen';
 import HearingTestScreen from './screens/main/HearingTestScreen';
 import HomeScreen from './screens/main/HomeScreen';
@@ -65,6 +66,10 @@ function TabIcon({
 
   if (tabName === 'cleaning') {
     return <MaterialCommunityIcons name="spray-bottle" size={size} color={color} />;
+  }
+
+  if (tabName === 'about') {
+    return <Ionicons name="information-circle-outline" size={size} color={color} />;
   }
 
   if (tabName === 'account') {
@@ -550,6 +555,8 @@ export default function App() {
             isPro={user.mode === 'pro'}
           />
         )}
+
+        {currentTab === 'about' && <AboutScreen />}
 
         {currentTab === 'account' && (
           <SettingsScreen

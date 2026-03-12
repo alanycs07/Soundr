@@ -1,4 +1,11 @@
-export type TabName = 'home' | 'hearing' | 'account' | 'plans' | 'cleaning';
+export type TabName =
+  | 'home'
+  | 'hearing'
+  | 'cleaning'
+  | 'about'
+  | 'account'
+  | 'plans';
+
 export type EarSide = 'left' | 'right';
 
 export type HearingResponse = {
@@ -138,6 +145,7 @@ export const TABS: { name: TabName; label: string; icon: string }[] = [
   { name: 'home', label: 'HOME', icon: 'home' },
   { name: 'hearing', label: 'TEST', icon: 'headset' },
   { name: 'cleaning', label: 'CLEAN', icon: 'spray' },
+  { name: 'about', label: 'ABOUT', icon: 'info' },
   { name: 'account', label: 'PROFILE', icon: 'person' },
   { name: 'plans', label: 'PLANS', icon: 'diamond' },
 ];
