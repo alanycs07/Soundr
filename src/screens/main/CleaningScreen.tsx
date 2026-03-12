@@ -33,7 +33,7 @@ export default function CleaningScreen({
           name="spray-bottle"
           size={30}
           color="#00ff00"
-          style={{ marginRight: 10 }}
+          style={{ marginRight: 8 }}
         />
         <Text
           style={{
@@ -49,177 +49,75 @@ export default function CleaningScreen({
       <Text
         style={{
           fontSize: 13,
-          color: '#666',
-          marginBottom: 16,
+          color: '#888888',
+          marginBottom: 22,
           fontWeight: '600',
           lineHeight: 20,
         }}
       >
-        Follow the step-by-step cleaning guide. Finish all cards to count today’s cleaning.
+        Follow the step-by-step cleaning guide. Finish all cards to count today&apos;s cleaning.
       </Text>
 
       <View
         style={{
           backgroundColor: '#1a1a2e',
           borderRadius: 14,
-          padding: 14,
+          padding: 16,
           marginBottom: 18,
           borderWidth: 1,
           borderColor: '#2b4330',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
         }}
       >
-        <View style={{ flex: 1, marginRight: 12 }}>
-          <Text
-            style={{
-              color: '#8aa18f',
-              marginBottom: 10,
-              fontSize: 12,
-              fontWeight: '700',
-              letterSpacing: 0.5,
-            }}
-          >
-            STEP {cleaningStep + 1} / {CLEANING_CARDS.length}
-          </Text>
-
-          <View
-            style={{
-              height: 10,
-              backgroundColor: '#333',
-              borderRadius: 5,
-              overflow: 'hidden',
-            }}
-          >
-            <View
-              style={{
-                width: `${cleaningProgress}%`,
-                height: '100%',
-                backgroundColor: '#00ff00',
-              }}
-            />
-          </View>
-        </View>
+        <Text
+          style={{
+            color: '#8aa18f',
+            marginBottom: 10,
+            fontSize: 12,
+            fontWeight: '700',
+            letterSpacing: 0.5,
+          }}
+        >
+          STEP {cleaningStep + 1} / {CLEANING_CARDS.length}
+        </Text>
 
         <View
           style={{
-            backgroundColor: isPro ? 'rgba(0,255,0,0.14)' : '#252a28',
-            borderRadius: 999,
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-            borderWidth: 1,
-            borderColor: isPro ? '#00ff00' : '#38413d',
+            height: 10,
+            backgroundColor: '#333333',
+            borderRadius: 5,
+            overflow: 'hidden',
           }}
         >
-          <Text
+          <View
             style={{
-              color: isPro ? '#00ff00' : '#9aa5a0',
-              fontSize: 11,
-              fontWeight: '900',
-              letterSpacing: 0.6,
+              width: `${cleaningProgress}%`,
+              height: '100%',
+              backgroundColor: '#00ff00',
             }}
-          >
-            {isPro ? 'PRO GUIDE' : 'BASIC GUIDE'}
-          </Text>
+          />
         </View>
       </View>
 
-      {isPro ? (
+      {!isPro && (
         <View
           style={{
             backgroundColor: '#1a1a2e',
-            borderRadius: 16,
+            borderRadius: 14,
             padding: 16,
             marginBottom: 18,
             borderWidth: 1,
             borderColor: '#2b4330',
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-            <Ionicons
-              name="videocam-outline"
-              size={16}
-              color="#00ff00"
-              style={{ marginRight: 8 }}
-            />
-            <Text
-              style={{
-                color: '#00ff00',
-                fontWeight: '800',
-                fontSize: 12,
-                letterSpacing: 1,
-              }}
-            >
-              PRO VIDEO GUIDE
-            </Text>
-          </View>
-
-          <View
-            style={{
-              backgroundColor: '#0f0f1e',
-              borderRadius: 14,
-              borderWidth: 1.5,
-              borderColor: '#304537',
-              borderStyle: 'dashed',
-              minHeight: 130,
-              justifyContent: 'center',
-              alignItems: 'center',
-              paddingHorizontal: 20,
-            }}
-          >
-            <Ionicons
-              name="play-circle-outline"
-              size={42}
-              color="#00ff00"
-              style={{ marginBottom: 10 }}
-            />
-            <Text
-              style={{
-                color: '#ffffff',
-                fontWeight: '800',
-                fontSize: 15,
-                marginBottom: 6,
-              }}
-            >
-              Video placeholder
-            </Text>
-            <Text
-              style={{
-                color: '#7d8d84',
-                textAlign: 'center',
-                fontSize: 12,
-                lineHeight: 18,
-              }}
-            >
-              Pro users will see the cleaning demonstration video for this step here.
-            </Text>
-          </View>
-        </View>
-      ) : (
-        <View
-          style={{
-            backgroundColor: '#1a1a2e',
-            borderRadius: 16,
-            padding: 14,
-            marginBottom: 18,
-            borderWidth: 1,
-            borderColor: '#2b4330',
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-            <Ionicons
-              name="lock-closed-outline"
-              size={15}
-              color="#8aa18f"
-              style={{ marginRight: 8 }}
-            />
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+            <Ionicons name="lock-closed-outline" size={16} color="#8aa18f" />
             <Text
               style={{
                 color: '#8aa18f',
-                fontWeight: '800',
-                fontSize: 12,
-                letterSpacing: 0.6,
+                fontWeight: '900',
+                fontSize: 13,
+                letterSpacing: 0.8,
+                marginLeft: 8,
               }}
             >
               PRO VIDEO LOCKED
@@ -228,9 +126,9 @@ export default function CleaningScreen({
 
           <Text
             style={{
-              color: '#6f8574',
-              fontSize: 12,
-              lineHeight: 18,
+              color: '#8aa18f',
+              fontSize: 14,
+              lineHeight: 22,
             }}
           >
             Basic users can still follow the full written cleaning guide. Upgrade to Pro for step-by-step video demonstrations.
@@ -252,24 +150,17 @@ export default function CleaningScreen({
         }}
       >
         <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-            <Ionicons
-              name="layers-outline"
-              size={16}
-              color="#00ff00"
-              style={{ marginRight: 8 }}
-            />
-            <Text
-              style={{
-                color: '#00ff00',
-                fontSize: 12,
-                fontWeight: '800',
-                letterSpacing: 1.2,
-              }}
-            >
-              CLEANING GUIDE
-            </Text>
-          </View>
+          <Text
+            style={{
+              color: '#00ff00',
+              fontSize: 12,
+              fontWeight: '800',
+              letterSpacing: 1.2,
+              marginBottom: 12,
+            }}
+          >
+            CLEANING GUIDE
+          </Text>
 
           <Text
             style={{
@@ -285,7 +176,7 @@ export default function CleaningScreen({
 
           <Text
             style={{
-              color: '#cfd8d1',
+              color: '#ffffff',
               fontSize: 15,
               lineHeight: 24,
               marginBottom: 10,
@@ -304,19 +195,11 @@ export default function CleaningScreen({
               paddingVertical: 16,
               alignItems: 'center',
               marginTop: 20,
-              flexDirection: 'row',
-              justifyContent: 'center',
             }}
           >
-            <Ionicons
-              name="play-circle-outline"
-              size={18}
-              color="#000"
-              style={{ marginRight: 8 }}
-            />
             <Text
               style={{
-                color: '#000',
+                color: '#000000',
                 fontWeight: '900',
                 fontSize: 16,
                 letterSpacing: 0.5,
@@ -331,24 +214,16 @@ export default function CleaningScreen({
               onPress={prevCleaningStep}
               style={{
                 flex: 1,
-                backgroundColor: '#2a2f2d',
+                backgroundColor: '#333333',
                 borderRadius: 14,
                 paddingVertical: 16,
                 alignItems: 'center',
                 marginRight: 6,
-                flexDirection: 'row',
-                justifyContent: 'center',
               }}
             >
-              <Ionicons
-                name="arrow-back-outline"
-                size={16}
-                color="#fff"
-                style={{ marginRight: 6 }}
-              />
               <Text
                 style={{
-                  color: '#fff',
+                  color: '#ffffff',
                   fontWeight: '800',
                   fontSize: 15,
                 }}
@@ -367,25 +242,17 @@ export default function CleaningScreen({
                   paddingVertical: 16,
                   alignItems: 'center',
                   marginLeft: 6,
-                  flexDirection: 'row',
-                  justifyContent: 'center',
                 }}
               >
                 <Text
                   style={{
-                    color: '#000',
+                    color: '#000000',
                     fontWeight: '900',
                     fontSize: 15,
                   }}
                 >
                   Next
                 </Text>
-                <Ionicons
-                  name="arrow-forward-outline"
-                  size={16}
-                  color="#000"
-                  style={{ marginLeft: 6 }}
-                />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -400,19 +267,11 @@ export default function CleaningScreen({
                   paddingVertical: 16,
                   alignItems: 'center',
                   marginLeft: 6,
-                  flexDirection: 'row',
-                  justifyContent: 'center',
                 }}
               >
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={16}
-                  color="#000"
-                  style={{ marginRight: 6 }}
-                />
                 <Text
                   style={{
-                    color: '#000',
+                    color: '#000000',
                     fontWeight: '900',
                     fontSize: 15,
                   }}

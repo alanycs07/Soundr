@@ -1,26 +1,27 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+
 import OnboardingScreen from './screens/auth/OnboardingScreen';
 import AboutScreen from './screens/main/AboutScreen';
 import CleaningScreen from './screens/main/CleaningScreen';
-import DailyListeningCheckInModal from './screens/main/DailyListeningCheckInModal';
 import HearingTestScreen from './screens/main/HearingTestScreen';
 import HomeScreen from './screens/main/HomeScreen';
 import PlansScreen from './screens/main/PlansScreen';
 import SettingsScreen from './screens/main/SettingsScreen';
+
 import {
   ARENA_DAYS,
   ARENAS,
   AppProgress,
   AppUser,
-  DailyListeningSurvey,
   DEFAULT_PROGRESS,
   FREQUENCIES,
   HearingResponse,
   TABS,
   TabName,
 } from './store/appStore';
+
 import {
   clearUser,
   getProgress,
@@ -41,21 +42,20 @@ function getYesterdayKey() {
   return d.toISOString().slice(0, 10);
 }
 
-function deriveArenaFromRoadPoints(roadPoints: number) {
+function deriveArenaFromStreak(streak: number) {
   const arenaCount = ARENAS.length;
-  const currentArena = Math.min(Math.floor(roadPoints / ARENA_DAYS) + 1, arenaCount);
-  const arenaProgress = ((roadPoints % ARENA_DAYS) / ARENA_DAYS) * 100;
+  const currentArena = Math.min(Math.floor(streak / ARENA_DAYS) + 1, arenaCount);
+  const arenaProgress = ((streak % ARENA_DAYS) / ARENA_DAYS) * 100;
   return { currentArena, arenaProgress };
 }
 
 function TabIcon({
   tabName,
-  active,
+  color,
 }: {
   tabName: TabName;
-  active: boolean;
+  color: string;
 }) {
-  const color = active ? '#00ff00' : '#666';
   const size = 20;
 
   if (tabName === 'home') {
@@ -88,7 +88,6 @@ export default function App() {
 
   const [progress, setProgress] = useState<AppProgress>(DEFAULT_PROGRESS);
   const [showArenaMap, setShowArenaMap] = useState(false);
-  const [showDailySurvey, setShowDailySurvey] = useState(false);
 
   const [selectedFrequency, setSelectedFrequency] = useState<number>(FREQUENCIES[0].hz);
   const [currentEar, setCurrentEar] = useState<'left' | 'right'>('left');
@@ -108,58 +107,47 @@ export default function App() {
 
   useEffect(() => {
     const load = async () => {
-      try {
-        const existingUser = await getUser();
+      const existingUser = await getUser();
 
-        if (existingUser) {
-          let storedProgress = await getProgress(existingUser.username);
-          const yesterday = getYesterdayKey();
+      if (existingUser) {
+        setUser(existingUser);
+        const storedProgress = await getProgress(existingUser.username);
 
-          if (
-            storedProgress.lastCompletedDate &&
-            storedProgress.lastCompletedDate !== getTodayKey() &&
-            storedProgress.lastCompletedDate !== yesterday &&
-            storedProgress.streak > 0
-          ) {
-            storedProgress = {
-              ...storedProgress,
-              streak: 0,
-            };
-            await saveProgress(existingUser.username, storedProgress);
-          }
+        const yesterday = getYesterdayKey();
+        let nextProgress = storedProgress;
 
-          setUser(existingUser);
-          setProgress(storedProgress);
-        } else {
-          setProgress(DEFAULT_PROGRESS);
+        if (
+          nextProgress.lastCompletedDate &&
+          nextProgress.lastCompletedDate !== getTodayKey() &&
+          nextProgress.lastCompletedDate !== yesterday &&
+          nextProgress.streak > 0
+        ) {
+          nextProgress = {
+            ...nextProgress,
+            streak: 0,
+          };
+          await saveProgress(existingUser.username, nextProgress);
         }
-      } finally {
-        setBootLoading(false);
+
+        setProgress(nextProgress);
       }
+
+      setBootLoading(false);
     };
 
-    void load();
+    load();
   }, []);
 
   const { currentArena, arenaProgress } = useMemo(() => {
-    return deriveArenaFromRoadPoints(progress.roadPoints);
-  }, [progress.roadPoints]);
+    return deriveArenaFromStreak(progress.streak);
+  }, [progress.streak]);
 
   const todayKey = getTodayKey();
   const todayStatus = progress.dailyStatus[todayKey] || {
     hearingDone: false,
     cleaningDone: false,
-    surveyDone: false,
     streakAwarded: false,
   };
-
-  useEffect(() => {
-    if (!bootLoading && user?.mode === 'pro') {
-      setShowDailySurvey(!todayStatus.surveyDone);
-    } else {
-      setShowDailySurvey(false);
-    }
-  }, [bootLoading, user, todayStatus.surveyDone]);
 
   const completedFrequencyCount = useMemo(() => {
     return Object.values(hearingResponses).filter(
@@ -167,11 +155,9 @@ export default function App() {
     ).length;
   }, [hearingResponses]);
 
-  const playSound = async () => {
+  const playSound = () => {
     setIsPlayingSound(true);
-    setTimeout(() => {
-      setIsPlayingSound(false);
-    }, 500);
+    setTimeout(() => setIsPlayingSound(false), 500);
   };
 
   const animateResults = () => {
@@ -213,7 +199,6 @@ export default function App() {
     const todayEntry = incomingProgress.dailyStatus[today] || {
       hearingDone: false,
       cleaningDone: false,
-      surveyDone: false,
       streakAwarded: false,
     };
 
@@ -231,7 +216,6 @@ export default function App() {
       nextProgress = {
         ...nextProgress,
         streak: nextStreak,
-        roadPoints: nextProgress.roadPoints + 1,
         lastCompletedDate: today,
         dailyStatus: {
           ...nextProgress.dailyStatus,
@@ -256,7 +240,6 @@ export default function App() {
     const todayEntry = current.dailyStatus[today] || {
       hearingDone: false,
       cleaningDone: false,
-      surveyDone: false,
       streakAwarded: false,
     };
 
@@ -286,7 +269,6 @@ export default function App() {
     const todayEntry = current.dailyStatus[today] || {
       hearingDone: false,
       cleaningDone: false,
-      surveyDone: false,
       streakAwarded: false,
     };
 
@@ -305,42 +287,6 @@ export default function App() {
     };
 
     await awardDailyStreakIfEligible(nextProgress);
-  };
-
-  const submitDailyListeningSurvey = async (survey: DailyListeningSurvey) => {
-    if (!user || user.mode !== 'pro') return;
-
-    const today = getTodayKey();
-    const current = await getProgress(user.username);
-
-    const todayEntry = current.dailyStatus[today] || {
-      hearingDone: false,
-      cleaningDone: false,
-      surveyDone: false,
-      streakAwarded: false,
-    };
-
-    const alreadyDone = todayEntry.surveyDone;
-
-    const nextProgress: AppProgress = {
-      ...current,
-      roadPoints: alreadyDone ? current.roadPoints : current.roadPoints + 2,
-      dailyStatus: {
-        ...current.dailyStatus,
-        [today]: {
-          ...todayEntry,
-          surveyDone: true,
-        },
-      },
-      dailySurveys: {
-        ...current.dailySurveys,
-        [today]: survey,
-      },
-    };
-
-    setProgress(nextProgress);
-    await saveProgress(user.username, nextProgress);
-    setShowDailySurvey(false);
   };
 
   const completeHearingTest = async (
@@ -473,22 +419,11 @@ export default function App() {
     }
 
     await saveUser(incomingUser);
-
-    const existingProgress = await getProgress(incomingUser.username);
-    await saveProgress(incomingUser.username, existingProgress);
+    const loadedProgress = await getProgress(incomingUser.username);
 
     setUser(incomingUser);
-    setProgress(existingProgress);
+    setProgress(loadedProgress);
     setCurrentTab('home');
-    setShowArenaMap(false);
-    setCleaningStep(0);
-    setTestComplete(false);
-    setHearingResponses({});
-    setSelectedFrequency(FREQUENCIES[0].hz);
-    setCurrentEar('left');
-    setHearingScore(0);
-    setHearingPercentile(0);
-    setHearingRank('');
   };
 
   const saveUsername = async (
@@ -526,8 +461,8 @@ export default function App() {
     setUser(updated);
     await saveUser(updated);
 
-    const updatedProgress = await getProgress(trimmed);
-    setProgress(updatedProgress);
+    const loadedProgress = await getProgress(trimmed);
+    setProgress(loadedProgress);
 
     return { success: true };
   };
@@ -538,7 +473,6 @@ export default function App() {
     setProgress(DEFAULT_PROGRESS);
     setCurrentTab('home');
     setShowArenaMap(false);
-    setShowDailySurvey(false);
     setCleaningStep(0);
     setTestComplete(false);
     setHearingResponses({});
@@ -573,8 +507,6 @@ export default function App() {
             setShowArenaMap={setShowArenaMap}
             todayHearingDone={todayStatus.hearingDone}
             todayCleaningDone={todayStatus.cleaningDone}
-            todaySurveyDone={user.mode === 'pro' ? todayStatus.surveyDone : undefined}
-            isPro={user.mode === 'pro'}
           />
         )}
 
@@ -616,7 +548,6 @@ export default function App() {
         {currentTab === 'account' && (
           <SettingsScreen
             user={user}
-            progress={progress}
             onSaveUsername={saveUsername}
             onLogout={handleLogout}
           />
@@ -635,34 +566,31 @@ export default function App() {
           paddingBottom: 20,
         }}
       >
-        {TABS.map((tab) => (
-          <TouchableOpacity
-            key={tab.name}
-            onPress={() => setCurrentTab(tab.name)}
-            style={{ flex: 1, alignItems: 'center', paddingVertical: 10 }}
-          >
-            <TabIcon tabName={tab.name} active={currentTab === tab.name} />
-            <Text
-              style={{
-                fontSize: 10,
-                color: currentTab === tab.name ? '#00ff00' : '#666',
-                fontWeight: '700',
-                letterSpacing: 0.3,
-                marginTop: 4,
-              }}
-            >
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        {TABS.map((tab) => {
+          const active = currentTab === tab.name;
+          const color = active ? '#00ff00' : '#888888';
 
-      {user.mode === 'pro' && (
-        <DailyListeningCheckInModal
-          visible={showDailySurvey}
-          onSubmit={submitDailyListeningSurvey}
-        />
-      )}
+          return (
+            <TouchableOpacity
+              key={tab.name}
+              onPress={() => setCurrentTab(tab.name)}
+              style={{ flex: 1, alignItems: 'center', paddingVertical: 10 }}
+            >
+              <TabIcon tabName={tab.name} color={color} />
+              <Text
+                style={{
+                  fontSize: 10,
+                  color,
+                  fontWeight: '700',
+                  marginTop: 4,
+                }}
+              >
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }

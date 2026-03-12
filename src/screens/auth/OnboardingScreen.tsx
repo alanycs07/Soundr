@@ -9,33 +9,29 @@ import {
 } from 'react-native';
 import { AppUser, EDUCATIONAL_FACTS, UserMode } from '../../store/appStore';
 import {
+  getStoredUserByUsername,
   isUsernameTaken,
-  loginExistingUser,
   redeemKitCode,
 } from '../../store/userStorage';
 
 type AuthStage = 'splash' | 'choice' | 'code' | 'username' | 'login';
 
 type Props = {
-  onComplete: (user: AppUser, options?: { isLogin?: boolean }) => Promise<void>;
+  onComplete: (user: AppUser, options?: { isLogin?: boolean }) => void;
 };
 
 export default function OnboardingScreen({ onComplete }: Props) {
   const [stage, setStage] = useState<AuthStage>('splash');
   const [pendingMode, setPendingMode] = useState<UserMode>('basic');
-
   const [code, setCode] = useState('');
   const [codeError, setCodeError] = useState('');
-
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
-
-  const [loginUsername, setLoginUsername] = useState('');
+  const [loginName, setLoginName] = useState('');
   const [loginError, setLoginError] = useState('');
-
   const [isCheckingCode, setIsCheckingCode] = useState(false);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isCheckingLogin, setIsCheckingLogin] = useState(false);
 
   const logoAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -77,29 +73,18 @@ export default function OnboardingScreen({ onComplete }: Props) {
     };
   }, [fadeAnim, logoAnim]);
 
-  const resetCreateFields = () => {
-    setCode('');
-    setCodeError('');
-    setUsername('');
-    setUsernameError('');
-  };
-
   const continueAsBasic = () => {
     setPendingMode('basic');
-    resetCreateFields();
+    setUsername('');
+    setUsernameError('');
     setStage('username');
   };
 
   const continueAsProPurchase = () => {
     setPendingMode('pro');
-    resetCreateFields();
+    setUsername('');
+    setUsernameError('');
     setStage('username');
-  };
-
-  const goToLogin = () => {
-    setLoginUsername('');
-    setLoginError('');
-    setStage('login');
   };
 
   const submitCode = async () => {
@@ -113,6 +98,8 @@ export default function OnboardingScreen({ onComplete }: Props) {
     }
 
     setPendingMode('pro');
+    setUsername('');
+    setUsernameError('');
     setStage('username');
   };
 
@@ -135,39 +122,34 @@ export default function OnboardingScreen({ onComplete }: Props) {
     const taken = await isUsernameTaken(finalUsername);
 
     if (taken) {
-      setUsernameError(
-        'That username is already taken. Use Log in to existing account instead.'
-      );
+      setUsernameError('That username is already taken. Try logging in instead.');
       return;
     }
 
-    await onComplete(
-      {
-        username: finalUsername,
-        mode: pendingMode,
-        redeemedCode: pendingMode === 'pro' && code ? code : null,
-      },
-      { isLogin: false }
-    );
+    onComplete({
+      username: finalUsername,
+      mode: pendingMode,
+      redeemedCode: pendingMode === 'pro' && code ? code : null,
+    });
   };
 
-  const handleLogin = async () => {
-    const trimmed = loginUsername.trim();
+  const loginToExistingAccount = async () => {
     setLoginError('');
+    const finalName = loginName.trim();
 
-    if (!trimmed) {
-      setLoginError('Please enter your username.');
+    if (!finalName) {
+      setLoginError('Please enter a username.');
       return;
     }
 
-    const result = await loginExistingUser(trimmed);
+    const existing = await getStoredUserByUsername(finalName);
 
-    if (!result.success || !result.user) {
-      setLoginError(result.reason || 'Could not log in.');
+    if (!existing) {
+      setLoginError('No account found with that username.');
       return;
     }
 
-    await onComplete(result.user, { isLogin: true });
+    onComplete(existing, { isLogin: true });
   };
 
   if (stage === 'splash') {
@@ -250,495 +232,406 @@ export default function OnboardingScreen({ onComplete }: Props) {
     );
   }
 
-  const buttonWidth = 290;
-
   return (
     <View
       style={{
         flex: 1,
         backgroundColor: '#0f0f1e',
-        paddingHorizontal: 24,
+        paddingHorizontal: 22,
         justifyContent: 'center',
         alignItems: 'center',
       }}
     >
       {stage === 'choice' && (
-        <View
-          style={{
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <View
-            style={{
-              alignItems: 'center',
-              marginBottom: 48,
-              justifyContent: 'center',
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text
-                style={{
-                  fontSize: 68,
-                  fontWeight: '900',
-                  color: '#ffffff',
-                  letterSpacing: -1.5,
-                }}
-              >
-                Sound
-              </Text>
-              <Text
-                style={{
-                  fontSize: 68,
-                  fontWeight: '900',
-                  color: '#00ff00',
-                }}
-              >
-                r.
-              </Text>
-            </View>
-
+        <View style={{ width: '100%', alignItems: 'center' }}>
+          <View style={{ alignItems: 'center', marginBottom: 26 }}>
             <Text
               style={{
-                fontSize: 13,
-                color: '#00ff00',
-                marginTop: 10,
-                letterSpacing: 2.2,
-                fontWeight: '700',
-              }}
-            >
-              HEARING COMPANION
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            onPress={continueAsBasic}
-            style={{
-              width: buttonWidth,
-              backgroundColor: '#1a1a2e',
-              borderRadius: 16,
-              paddingVertical: 17,
-              alignItems: 'center',
-              marginBottom: 14,
-              borderWidth: 1.5,
-              borderColor: '#2b4330',
-            }}
-          >
-            <Text
-              style={{
-                color: '#ffffff',
-                fontWeight: '800',
-                fontSize: 16,
-              }}
-            >
-              Create a Basic Account
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={continueAsProPurchase}
-            style={{
-              width: buttonWidth,
-              backgroundColor: '#00ff00',
-              borderRadius: 16,
-              paddingVertical: 17,
-              alignItems: 'center',
-              marginBottom: 14,
-            }}
-          >
-            <Text
-              style={{
-                color: '#000',
+                fontSize: 58,
                 fontWeight: '900',
-                fontSize: 16,
+                color: '#ffffff',
+                lineHeight: 62,
               }}
             >
-              Purchase a Pro Account
+              Sound
+              <Text style={{ color: '#00ff00' }}>r.</Text>
             </Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => setStage('code')}
-            style={{
-              width: buttonWidth,
-              backgroundColor: '#1a1a2e',
-              borderRadius: 16,
-              paddingVertical: 17,
-              alignItems: 'center',
-              marginBottom: 14,
-              borderWidth: 1.5,
-              borderColor: '#00ff00',
-            }}
-          >
-            <Text
-              style={{
-                color: '#00ff00',
-                fontWeight: '800',
-                fontSize: 16,
-              }}
-            >
-              Enter a Kit Code
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={goToLogin}
-            style={{
-              width: buttonWidth,
-              backgroundColor: '#151825',
-              borderRadius: 16,
-              paddingVertical: 17,
-              alignItems: 'center',
-              borderWidth: 1.5,
-              borderColor: '#2b4330',
-            }}
-          >
             <Text
               style={{
                 color: '#8aa18f',
-                fontWeight: '800',
-                fontSize: 16,
+                fontSize: 14,
+                marginTop: 8,
+                textAlign: 'center',
               }}
             >
-              Log in to Existing Account
+              Ear health, cleaned up.
             </Text>
-          </TouchableOpacity>
+          </View>
+
+          {[
+            { label: 'Create a Basic Account', onPress: continueAsBasic, filled: false },
+            { label: 'Purchase a Pro Account', onPress: continueAsProPurchase, filled: true },
+            { label: 'Enter a Kit Code', onPress: () => setStage('code'), filled: false },
+            { label: 'Login to Existing Account', onPress: () => setStage('login'), filled: false },
+          ].map((button) => (
+            <TouchableOpacity
+              key={button.label}
+              onPress={button.onPress}
+              style={{
+                width: 270,
+                backgroundColor: button.filled ? '#00ff00' : '#1a1a2e',
+                borderRadius: 16,
+                paddingVertical: 16,
+                alignItems: 'center',
+                marginBottom: 12,
+                borderWidth: 1.5,
+                borderColor: button.filled ? '#00ff00' : '#2b4330',
+              }}
+            >
+              <Text
+                style={{
+                  color: button.filled ? '#000000' : '#ffffff',
+                  fontWeight: '800',
+                  fontSize: 15,
+                }}
+              >
+                {button.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 
       {stage === 'code' && (
-        <View style={{ width: '100%', alignItems: 'center' }}>
-          <View style={{ width: buttonWidth }}>
+        <View style={{ width: '100%' }}>
+          <Text
+            style={{
+              fontSize: 36,
+              fontWeight: '900',
+              color: '#ffffff',
+              marginBottom: 10,
+            }}
+          >
+            Enter your kit code
+          </Text>
+
+          <Text
+            style={{
+              color: '#8aa18f',
+              fontSize: 15,
+              lineHeight: 22,
+              marginBottom: 24,
+            }}
+          >
+            Type the unique 6 digit code that came with your sanitation kit.
+          </Text>
+
+          <TextInput
+            value={code}
+            onChangeText={(text) => {
+              const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
+              setCode(digitsOnly);
+              setCodeError('');
+            }}
+            keyboardType="number-pad"
+            maxLength={6}
+            placeholder="______"
+            placeholderTextColor="#8aa18f"
+            style={{
+              backgroundColor: '#1a1a2e',
+              borderRadius: 16,
+              borderWidth: 1.5,
+              borderColor: '#2b4330',
+              color: '#ffffff',
+              fontSize: 28,
+              fontWeight: '800',
+              textAlign: 'center',
+              letterSpacing: 8,
+              paddingVertical: 18,
+              marginBottom: 12,
+            }}
+          />
+
+          {!!codeError && (
             <Text
               style={{
-                fontSize: 36,
-                fontWeight: '900',
-                color: '#fff',
-                marginBottom: 10,
-              }}
-            >
-              Enter your kit code
-            </Text>
-
-            <Text
-              style={{
-                color: '#8aa18f',
-                fontSize: 15,
-                lineHeight: 22,
-                marginBottom: 24,
-              }}
-            >
-              Type the unique 6 digit code that came with your sanitation kit.
-            </Text>
-
-            <TextInput
-              value={code}
-              onChangeText={(text) => {
-                const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
-                setCode(digitsOnly);
-                setCodeError('');
-              }}
-              keyboardType="number-pad"
-              maxLength={6}
-              placeholder="______"
-              placeholderTextColor="#55705b"
-              style={{
-                backgroundColor: '#1a1a2e',
-                borderRadius: 16,
-                borderWidth: 1.5,
-                borderColor: '#2b4330',
-                color: '#fff',
-                fontSize: 28,
-                fontWeight: '800',
-                textAlign: 'center',
-                letterSpacing: 8,
-                paddingVertical: 18,
-                marginBottom: 12,
-              }}
-            />
-
-            {!!codeError && (
-              <Text
-                style={{
-                  color: '#ff7c7c',
-                  fontSize: 13,
-                  marginBottom: 16,
-                  fontWeight: '600',
-                }}
-              >
-                {codeError}
-              </Text>
-            )}
-
-            <TouchableOpacity
-              onPress={async () => {
-                if (isCheckingCode) return;
-                setIsCheckingCode(true);
-                await submitCode();
-                setIsCheckingCode(false);
-              }}
-              style={{
-                backgroundColor: '#00ff00',
-                borderRadius: 16,
-                paddingVertical: 18,
-                alignItems: 'center',
-                marginBottom: 14,
-              }}
-            >
-              {isCheckingCode ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text
-                  style={{
-                    color: '#000',
-                    fontWeight: '900',
-                    fontSize: 16,
-                  }}
-                >
-                  Redeem Code
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setStage('choice')}
-              style={{
-                paddingVertical: 12,
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  color: '#8aa18f',
-                  fontWeight: '700',
-                }}
-              >
-                ← Back
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {stage === 'username' && (
-        <View style={{ width: '100%', alignItems: 'center' }}>
-          <View style={{ width: buttonWidth }}>
-            <Text
-              style={{
-                fontSize: 36,
-                fontWeight: '900',
-                color: '#fff',
-                marginBottom: 10,
-              }}
-            >
-              What should we call you?
-            </Text>
-
-            <Text
-              style={{
-                color: '#8aa18f',
-                fontSize: 15,
-                lineHeight: 22,
-                marginBottom: 22,
-              }}
-            >
-              Pick a username. You can edit it later in your profile.
-            </Text>
-
-            <TextInput
-              value={username}
-              onChangeText={(text) => {
-                setUsername(text);
-                setUsernameError('');
-              }}
-              placeholder="Enter your username"
-              placeholderTextColor="#55705b"
-              autoCapitalize="none"
-              style={{
-                backgroundColor: '#1a1a2e',
-                borderRadius: 16,
-                borderWidth: 1.5,
-                borderColor: '#2b4330',
-                color: '#fff',
-                fontSize: 16,
+                color: '#ff8d8d',
+                fontSize: 13,
+                marginBottom: 16,
                 fontWeight: '600',
-                paddingHorizontal: 16,
-                paddingVertical: 18,
-                marginBottom: 12,
               }}
-            />
+            >
+              {codeError}
+            </Text>
+          )}
 
-            {!!usernameError && (
+          <TouchableOpacity
+            onPress={async () => {
+              if (isCheckingCode) return;
+              setIsCheckingCode(true);
+              await submitCode();
+              setIsCheckingCode(false);
+            }}
+            style={{
+              backgroundColor: '#00ff00',
+              borderRadius: 16,
+              paddingVertical: 18,
+              alignItems: 'center',
+              marginBottom: 14,
+            }}
+          >
+            {isCheckingCode ? (
+              <ActivityIndicator color="#000000" />
+            ) : (
               <Text
                 style={{
-                  color: '#ff7c7c',
-                  fontSize: 13,
-                  marginBottom: 16,
-                  fontWeight: '600',
+                  color: '#000000',
+                  fontWeight: '900',
+                  fontSize: 16,
                 }}
               >
-                {usernameError}
+                Redeem Code
               </Text>
             )}
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={async () => {
-                if (isCheckingUsername) return;
-                setIsCheckingUsername(true);
-                await finishProfile();
-                setIsCheckingUsername(false);
-              }}
+          <TouchableOpacity
+            onPress={() => setStage('choice')}
+            style={{
+              paddingVertical: 12,
+              alignItems: 'center',
+            }}
+          >
+            <Text
               style={{
-                backgroundColor: '#00ff00',
-                borderRadius: 16,
-                paddingVertical: 18,
-                alignItems: 'center',
-                marginBottom: 12,
+                color: '#8aa18f',
+                fontWeight: '700',
               }}
             >
-              {isCheckingUsername ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text
-                  style={{
-                    color: '#000',
-                    fontWeight: '900',
-                    fontSize: 16,
-                  }}
-                >
-                  Continue
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setStage('choice')}
-              style={{
-                paddingVertical: 10,
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  color: '#8aa18f',
-                  fontWeight: '700',
-                }}
-              >
-                ← Back
-              </Text>
-            </TouchableOpacity>
-          </View>
+              ← Back
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 
       {stage === 'login' && (
-        <View style={{ width: '100%', alignItems: 'center' }}>
-          <View style={{ width: buttonWidth }}>
+        <View style={{ width: '100%' }}>
+          <Text
+            style={{
+              fontSize: 36,
+              fontWeight: '900',
+              color: '#ffffff',
+              marginBottom: 10,
+            }}
+          >
+            Login
+          </Text>
+
+          <Text
+            style={{
+              color: '#8aa18f',
+              fontSize: 15,
+              lineHeight: 22,
+              marginBottom: 22,
+            }}
+          >
+            Enter your existing username to continue where you left off.
+          </Text>
+
+          <TextInput
+            value={loginName}
+            onChangeText={(text) => {
+              setLoginName(text);
+              setLoginError('');
+            }}
+            placeholder="Enter your username"
+            placeholderTextColor="#8aa18f"
+            style={{
+              backgroundColor: '#1a1a2e',
+              borderRadius: 16,
+              borderWidth: 1.5,
+              borderColor: '#2b4330',
+              color: '#ffffff',
+              fontSize: 16,
+              fontWeight: '600',
+              paddingHorizontal: 16,
+              paddingVertical: 18,
+              marginBottom: 12,
+            }}
+          />
+
+          {!!loginError && (
             <Text
               style={{
-                fontSize: 36,
-                fontWeight: '900',
-                color: '#fff',
-                marginBottom: 10,
+                color: '#ff8d8d',
+                fontSize: 13,
+                marginBottom: 16,
+                fontWeight: '600',
               }}
             >
-              Log in
+              {loginError}
             </Text>
+          )}
 
+          <TouchableOpacity
+            onPress={async () => {
+              if (isCheckingLogin) return;
+              setIsCheckingLogin(true);
+              await loginToExistingAccount();
+              setIsCheckingLogin(false);
+            }}
+            style={{
+              backgroundColor: '#00ff00',
+              borderRadius: 16,
+              paddingVertical: 18,
+              alignItems: 'center',
+              marginBottom: 14,
+            }}
+          >
+            {isCheckingLogin ? (
+              <ActivityIndicator color="#000000" />
+            ) : (
+              <Text
+                style={{
+                  color: '#000000',
+                  fontWeight: '900',
+                  fontSize: 16,
+                }}
+              >
+                Login to Account
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setStage('choice')}
+            style={{
+              paddingVertical: 12,
+              alignItems: 'center',
+            }}
+          >
             <Text
               style={{
                 color: '#8aa18f',
-                fontSize: 15,
-                lineHeight: 22,
-                marginBottom: 22,
+                fontWeight: '700',
               }}
             >
-              Enter your existing username to continue where you left off.
+              ← Back
             </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-            <TextInput
-              value={loginUsername}
-              onChangeText={(text) => {
-                setLoginUsername(text);
-                setLoginError('');
-              }}
-              placeholder="Enter your username"
-              placeholderTextColor="#55705b"
-              autoCapitalize="none"
+      {stage === 'username' && (
+        <View style={{ width: '100%' }}>
+          <Text
+            style={{
+              fontSize: 36,
+              fontWeight: '900',
+              color: '#ffffff',
+              marginBottom: 10,
+            }}
+          >
+            What should we call you?
+          </Text>
+
+          <Text
+            style={{
+              color: '#8aa18f',
+              fontSize: 15,
+              lineHeight: 22,
+              marginBottom: 22,
+            }}
+          >
+            Pick a username. You can edit it later in your profile.
+          </Text>
+
+          <TextInput
+            value={username}
+            onChangeText={(text) => {
+              setUsername(text);
+              setUsernameError('');
+            }}
+            placeholder="Enter your username"
+            placeholderTextColor="#8aa18f"
+            style={{
+              backgroundColor: '#1a1a2e',
+              borderRadius: 16,
+              borderWidth: 1.5,
+              borderColor: '#2b4330',
+              color: '#ffffff',
+              fontSize: 16,
+              fontWeight: '600',
+              paddingHorizontal: 16,
+              paddingVertical: 18,
+              marginBottom: 12,
+            }}
+          />
+
+          {!!usernameError && (
+            <Text
               style={{
-                backgroundColor: '#1a1a2e',
-                borderRadius: 16,
-                borderWidth: 1.5,
-                borderColor: '#2b4330',
-                color: '#fff',
-                fontSize: 16,
+                color: '#ff8d8d',
+                fontSize: 13,
+                marginBottom: 16,
                 fontWeight: '600',
-                paddingHorizontal: 16,
-                paddingVertical: 18,
-                marginBottom: 12,
               }}
-            />
+            >
+              {usernameError}
+            </Text>
+          )}
 
-            {!!loginError && (
+          <TouchableOpacity
+            onPress={async () => {
+              if (isCheckingUsername) return;
+              setIsCheckingUsername(true);
+              await finishProfile();
+              setIsCheckingUsername(false);
+            }}
+            style={{
+              backgroundColor: '#00ff00',
+              borderRadius: 16,
+              paddingVertical: 18,
+              alignItems: 'center',
+              marginBottom: 14,
+            }}
+          >
+            {isCheckingUsername ? (
+              <ActivityIndicator color="#000000" />
+            ) : (
               <Text
                 style={{
-                  color: '#ff7c7c',
-                  fontSize: 13,
-                  marginBottom: 16,
-                  fontWeight: '600',
+                  color: '#000000',
+                  fontWeight: '900',
+                  fontSize: 16,
                 }}
               >
-                {loginError}
+                Continue
               </Text>
             )}
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={async () => {
-                if (isLoggingIn) return;
-                setIsLoggingIn(true);
-                await handleLogin();
-                setIsLoggingIn(false);
-              }}
+          <TouchableOpacity
+            onPress={() => {
+              setUsername('');
+              setUsernameError('');
+              setStage('choice');
+            }}
+            style={{
+              paddingVertical: 12,
+              alignItems: 'center',
+            }}
+          >
+            <Text
               style={{
-                backgroundColor: '#00ff00',
-                borderRadius: 16,
-                paddingVertical: 18,
-                alignItems: 'center',
-                marginBottom: 12,
+                color: '#8aa18f',
+                fontWeight: '700',
               }}
             >
-              {isLoggingIn ? (
-                <ActivityIndicator color="#000" />
-              ) : (
-                <Text
-                  style={{
-                    color: '#000',
-                    fontWeight: '900',
-                    fontSize: 16,
-                  }}
-                >
-                  Log in to account
-                </Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setStage('choice')}
-              style={{
-                paddingVertical: 10,
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  color: '#8aa18f',
-                  fontWeight: '700',
-                }}
-              >
-                ← Back
-              </Text>
-            </TouchableOpacity>
-          </View>
+              ← Back
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>

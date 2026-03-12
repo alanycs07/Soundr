@@ -40,47 +40,18 @@ export type AppUser = {
   redeemedCode?: string | null;
 };
 
-export type ListeningDurationOption =
-  | '< 30 min'
-  | '30–60 min'
-  | '1–2 hours'
-  | '2–4 hours'
-  | '4+ hours';
-
-export type ListeningVolumeOption = 'Low' | 'Medium' | 'Loud' | 'Very loud';
-
-export type ListeningEnvironmentOption =
-  | 'Studying / working'
-  | 'Gym'
-  | 'Commuting'
-  | 'Gaming'
-  | 'Relaxing';
-
-export type EarDiscomfortOption = 'None' | 'Slight' | 'Moderate' | 'Severe';
-
-export type DailyListeningSurvey = {
-  date: string;
-  duration: ListeningDurationOption;
-  volume: ListeningVolumeOption;
-  environment: ListeningEnvironmentOption;
-  discomfort: EarDiscomfortOption;
-};
-
 export type DailyTaskStatus = {
   hearingDone: boolean;
   cleaningDone: boolean;
-  surveyDone: boolean;
   streakAwarded: boolean;
 };
 
 export type AppProgress = {
   streak: number;
-  roadPoints: number;
   totalCleanings: number;
   totalHearingTests: number;
   lastCompletedDate: string | null;
   dailyStatus: Record<string, DailyTaskStatus>;
-  dailySurveys: Record<string, DailyListeningSurvey>;
 };
 
 export const ARENA_DAYS = 30;
@@ -116,11 +87,11 @@ export const FREQUENCIES: Frequency[] = [
 ];
 
 export const EDUCATIONAL_FACTS = [
-  '🧼 Earwax is protective and helps defend the ear canal.',
-  '👂 Human hearing is often strongest in the mid-range, not at the extremes.',
-  '🔊 Long exposure to loud audio can reduce hearing sensitivity over time.',
-  '🎧 Earbuds at high volume for long periods can make high-frequency loss worse.',
-  '💧 Clean ears gently and avoid forcing objects deep into the ear canal.',
+  'Earwax is protective and helps defend the ear canal.',
+  'Human hearing is often strongest in the mid-range, not at the extremes.',
+  'Long exposure to loud audio can reduce hearing sensitivity over time.',
+  'Earbuds at high volume for long periods can make high-frequency loss worse.',
+  'Clean ears gently and avoid forcing objects deep into the ear canal.',
 ];
 
 export const CLEANING_CARDS: CleaningCard[] = [
@@ -165,7 +136,7 @@ export const CLEANING_CARDS: CleaningCard[] = [
   {
     title: 'Congratulations, you are done!',
     body:
-      'Let the AirPods dry completely for at least a little while before use. Once everything is fully dry, place them back in the case.',
+      'Let the AirPods dry completely before use. Once everything is fully dry, place them back in the case.',
     cta: 'Finish Cleaning',
   },
 ];
@@ -181,10 +152,8 @@ export const TABS: { name: TabName; label: string; icon: string }[] = [
 
 export const DEFAULT_PROGRESS: AppProgress = {
   streak: 0,
-  roadPoints: 0,
   totalCleanings: 0,
   totalHearingTests: 0,
   lastCompletedDate: null,
   dailyStatus: {},
-  dailySurveys: {},
 };

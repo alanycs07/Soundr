@@ -1,47 +1,45 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
-function SectionCard({
-  icon,
+function Section({
   title,
-  children,
+  body,
 }: {
-  icon: React.ReactNode;
   title: string;
-  children: React.ReactNode;
+  body: string;
 }) {
   return (
     <View
       style={{
         backgroundColor: '#1a1a2e',
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 18,
-        borderWidth: 1.5,
+        borderRadius: 18,
+        padding: 18,
+        marginBottom: 16,
+        borderWidth: 1,
         borderColor: '#2b4330',
       }}
     >
-      <View
+      <Text
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          marginBottom: 14,
+          color: '#00ff00',
+          fontSize: 13,
+          fontWeight: '900',
+          letterSpacing: 1,
+          marginBottom: 10,
         }}
       >
-        <View style={{ marginRight: 10 }}>{icon}</View>
-        <Text
-          style={{
-            color: '#ffffff',
-            fontSize: 20,
-            fontWeight: '900',
-          }}
-        >
-          {title}
-        </Text>
-      </View>
+        {title}
+      </Text>
 
-      {children}
+      <Text
+        style={{
+          color: '#ffffff',
+          fontSize: 14,
+          lineHeight: 22,
+        }}
+      >
+        {body}
+      </Text>
     </View>
   );
 }
@@ -54,201 +52,36 @@ export default function AboutScreen() {
           fontSize: 40,
           fontWeight: '900',
           color: '#ffffff',
-          marginBottom: 10,
+          marginBottom: 24,
         }}
       >
         About Soundr
       </Text>
 
-      <Text
-        style={{
-          color: '#8aa18f',
-          fontSize: 14,
-          lineHeight: 22,
-          marginBottom: 24,
-          fontWeight: '600',
-        }}
-      >
-        Learn more about our mission, our product, our team, and the purpose
-        behind Soundr.
-      </Text>
+      <Section
+        title="MISSION"
+        body="Soundr uses eco-friendly materials to build a sanitation kit for earbuds alongside a web app that supplements and gamifies that experience. Our goal is to raise awareness around ear health through daily habits, routine cleaning, and accessible education."
+      />
 
-      <SectionCard
-        icon={<Ionicons name="sparkles-outline" size={20} color="#00ff00" />}
-        title="Our Mission"
-      >
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-          }}
-        >
-          Soundr was created to raise awareness about ear health through an
-          eco-conscious sanitation kit for earbuds, paired with a web app that
-          helps guide, reinforce, and gamify healthier cleaning habits. Our goal
-          is to make earbud care more engaging, more accessible, and more
-          sustainable, especially for students and everyday users who may not
-          think about ear health until problems appear.
-        </Text>
-      </SectionCard>
+      <Section
+        title="SUSTAINABILITY ALIGNMENT"
+        body="Soundr aligns closely with United Nations Sustainable Development Goals 3 and 12 by encouraging healthier everyday habits while promoting more responsible production and material choices. We aim to make ear-care awareness practical, engaging, and environmentally conscious."
+      />
 
-      <SectionCard
-        icon={<MaterialCommunityIcons name="earth" size={20} color="#00ff00" />}
-        title="Sustainability and Impact"
-      >
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-            marginBottom: 12,
-          }}
-        >
-          Soundr aligns closely with the spirit of United Nations Sustainable
-          Development Goal 3, Good Health and Well-Being, by encouraging better
-          hygiene practices and greater awareness of personal ear health.
-        </Text>
+      <Section
+        title="OUR PRODUCT"
+        body="Our product concept includes eco-friendly bamboo 3D printed filament, a bamboo brush, an upcycled microfiber cloth, and safe-to-use isopropyl alcohol. Together, these materials support a more sustainable and intentional cleaning routine for earbuds and AirPods."
+      />
 
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-          }}
-        >
-          It also connects with Sustainable Development Goal 12, Responsible
-          Consumption and Production, through our emphasis on eco-friendly
-          materials, upcycled components, and more thoughtful product design.
-          We want Soundr to show that health-focused products can also be built
-          with sustainability in mind.
-        </Text>
-      </SectionCard>
+      <Section
+        title="FOUNDERS"
+        body="Daniel Lei, President. Alan Sun, Vice President. Steven Yan, Vice President of Production. Karthik Sinclair, Vice President of Social Media. Iana Kim, Vice President of Sales."
+      />
 
-      <SectionCard
-        icon={
-          <MaterialCommunityIcons
-            name="spray-bottle"
-            size={20}
-            color="#00ff00"
-          />
-        }
-        title="About Our Product"
-      >
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-            marginBottom: 12,
-          }}
-        >
-          The Soundr sanitation kit is designed around practical cleaning,
-          safety, and sustainability. Our product includes eco-friendly bamboo
-          3D printed filament, a bamboo brush, an upcycled microfiber cloth, and
-          safe-to-use isopropyl alcohol intended for careful earbud cleaning.
-        </Text>
-
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-          }}
-        >
-          The companion app supports that physical product by guiding users
-          through repeatable cleaning steps, encouraging consistent habits, and
-          turning routine maintenance into a more interactive experience.
-        </Text>
-      </SectionCard>
-
-      <SectionCard
-        icon={<Ionicons name="people-outline" size={20} color="#00ff00" />}
-        title="The Founders"
-      >
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-            marginBottom: 8,
-          }}
-        >
-          Daniel Lei — President
-        </Text>
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-            marginBottom: 8,
-          }}
-        >
-          Alan Sun — Vice President
-        </Text>
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-            marginBottom: 8,
-          }}
-        >
-          Steven Yan — Vice President of Production
-        </Text>
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-            marginBottom: 8,
-          }}
-        >
-          Karthik Sinclair — Vice President of Social Media
-        </Text>
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-          }}
-        >
-          Iana Kim — Vice President of Sales
-        </Text>
-      </SectionCard>
-
-      <SectionCard
-        icon={<Ionicons name="alert-circle-outline" size={20} color="#00ff00" />}
-        title="Disclaimer"
-      >
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-            marginBottom: 12,
-          }}
-        >
-          Soundr products are intended to raise awareness about ear health and
-          support the cleaning and sanitation of earbuds such as AirPods and
-          other similar devices.
-        </Text>
-
-        <Text
-          style={{
-            color: '#d7e2d9',
-            fontSize: 15,
-            lineHeight: 24,
-          }}
-        >
-          They are not intended to diagnose, treat, cure, or replace
-          professional medical care. If a user experiences pain, infection,
-          hearing loss, irritation, or any ongoing ear-related concern, they
-          should stop use and seek advice from a qualified medical professional.
-          Soundr should be seen as an awareness and hygiene tool, not as a
-          substitute for medical treatment.
-        </Text>
-      </SectionCard>
+      <Section
+        title="DISCLAIMER"
+        body="Soundr products and the Soundr web app are intended to raise awareness about ear health and encourage better sanitation habits for earbuds and AirPods. They are not meant to diagnose, treat, cure, or replace professional medical advice or treatment. Users experiencing pain, hearing loss, irritation, infection, or other symptoms should consult a qualified healthcare professional."
+      />
     </View>
   );
 }
