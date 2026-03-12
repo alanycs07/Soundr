@@ -8,7 +8,8 @@ type Props = {
   arenaProgress: number;
   showArenaMap: boolean;
   setShowArenaMap: (value: boolean) => void;
-  onCompleteToday: () => void;
+  todayHearingDone: boolean;
+  todayCleaningDone: boolean;
 };
 
 export default function HomeScreen({
@@ -17,7 +18,8 @@ export default function HomeScreen({
   arenaProgress,
   showArenaMap,
   setShowArenaMap,
-  onCompleteToday,
+  todayHearingDone,
+  todayCleaningDone,
 }: Props) {
   return (
     <View style={{ paddingHorizontal: 18 }}>
@@ -52,7 +54,7 @@ export default function HomeScreen({
           borderRadius: 24,
           padding: 36,
           alignItems: 'center',
-          marginBottom: 36,
+          marginBottom: 24,
           borderWidth: 2,
           borderColor: '#00ff00',
         }}
@@ -106,6 +108,81 @@ export default function HomeScreen({
           TAP FOR ARENAS
         </Text>
       </TouchableOpacity>
+
+      <View
+        style={{
+          backgroundColor: '#1a1a2e',
+          borderRadius: 18,
+          padding: 18,
+          marginBottom: 36,
+          borderWidth: 1,
+          borderColor: '#2b4330',
+        }}
+      >
+        <Text
+          style={{
+            color: '#00ff00',
+            fontWeight: '900',
+            fontSize: 13,
+            marginBottom: 14,
+            letterSpacing: 1,
+          }}
+        >
+          TODAY'S PROGRESS
+        </Text>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginBottom: 12,
+          }}
+        >
+          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
+            Hearing test
+          </Text>
+          <Text
+            style={{
+              color: todayHearingDone ? '#00ff00' : '#888',
+              fontSize: 14,
+              fontWeight: '900',
+            }}
+          >
+            {todayHearingDone ? 'DONE ✓' : 'NOT DONE'}
+          </Text>
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
+            Cleaning guide
+          </Text>
+          <Text
+            style={{
+              color: todayCleaningDone ? '#00ff00' : '#888',
+              fontSize: 14,
+              fontWeight: '900',
+            }}
+          >
+            {todayCleaningDone ? 'DONE ✓' : 'NOT DONE'}
+          </Text>
+        </View>
+
+        <Text
+          style={{
+            color: '#6f8574',
+            fontSize: 12,
+            marginTop: 14,
+            lineHeight: 18,
+          }}
+        >
+          Finish both tasks in one day to grow your streak.
+        </Text>
+      </View>
 
       {showArenaMap && (
         <View
@@ -189,7 +266,7 @@ export default function HomeScreen({
               flexDirection: 'row',
               flexWrap: 'wrap',
               justifyContent: 'space-between',
-              marginBottom: 24,
+              marginBottom: 8,
             }}
           >
             {ARENAS.map((arena) => (
@@ -229,27 +306,6 @@ export default function HomeScreen({
               </View>
             ))}
           </View>
-
-          <TouchableOpacity
-            onPress={onCompleteToday}
-            style={{
-              backgroundColor: '#00ff00',
-              borderRadius: 14,
-              paddingVertical: 16,
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              style={{
-                color: '#000',
-                fontWeight: '900',
-                fontSize: 16,
-                letterSpacing: 0.5,
-              }}
-            >
-              ✓ COMPLETE TODAY
-            </Text>
-          </TouchableOpacity>
         </View>
       )}
 

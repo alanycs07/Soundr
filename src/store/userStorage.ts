@@ -1,46 +1,42 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppUser } from './appStore';
+import { AppProgress, AppUser, DEFAULT_PROGRESS } from './appStore';
 
 const USER_KEY = 'soundr_user';
 const REDEEMED_CODES_KEY = 'soundr_redeemed_codes';
 const USERNAME_LIST_KEY = 'soundr_usernames';
+const PROGRESS_KEY = 'soundr_progress';
 
-/*
-  Demo-only prototype codes.
-  For real production use, do not store valid codes in the app.
-  Put them in a backend database and verify server-side.
-*/
 const DEMO_VALID_CODES = ['184203', '582114', '761905', '330821', '924617'];
 
-export async function saveUser(user: AppUser) {
+export async function saveUser(user: AppUser): Promise<void> {
   await registerUsername(user.username);
   await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
 export async function getUser(): Promise<AppUser | null> {
   const raw = await AsyncStorage.getItem(USER_KEY);
-  return raw ? JSON.parse(raw) : null;
+  return raw ? (JSON.parse(raw) as AppUser) : null;
 }
 
-export async function clearUser() {
+export async function clearUser(): Promise<void> {
   await AsyncStorage.removeItem(USER_KEY);
 }
 
-export const clearAllData = async (): Promise<void> => {
-  await AsyncStorage.removeItem('users');
-  await AsyncStorage.removeItem('currentUserId');
-  await AsyncStorage.removeItem('hasLaunchedBefore');
-};
+export async function clearAllData(): Promise<void> {
+  await AsyncStorage.removeItem(USER_KEY);
+  await AsyncStorage.removeItem(REDEEMED_CODES_KEY);
+  await AsyncStorage.removeItem(USERNAME_LIST_KEY);
+  await AsyncStorage.removeItem(PROGRESS_KEY);
+}
 
 export async function getRedeemedCodes(): Promise<string[]> {
   const raw = await AsyncStorage.getItem(REDEEMED_CODES_KEY);
-  return raw ? JSON.parse(raw) : [];
+  return raw ? (JSON.parse(raw) as string[]) : [];
 }
 
-export async function redeemKitCode(code: string): Promise<{
-  success: boolean;
-  reason?: string;
-}> {
+export async function redeemKitCode(
+  code: string
+): Promise<{ success: boolean; reason?: string }> {
   const normalized = code.trim();
 
   if (!/^\d{6}$/.test(normalized)) {
@@ -65,7 +61,7 @@ export async function redeemKitCode(code: string): Promise<{
 
 export async function getAllUsernames(): Promise<string[]> {
   const raw = await AsyncStorage.getItem(USERNAME_LIST_KEY);
-  return raw ? JSON.parse(raw) : [];
+  return raw ? (JSON.parse(raw) as string[]) : [];
 }
 
 export async function isUsernameTaken(username: string): Promise<boolean> {
@@ -74,7 +70,7 @@ export async function isUsernameTaken(username: string): Promise<boolean> {
   return usernames.includes(normalized);
 }
 
-export async function registerUsername(username: string) {
+export async function registerUsername(username: string): Promise<void> {
   const usernames = await getAllUsernames();
   const normalized = username.trim().toLowerCase();
 
@@ -87,7 +83,7 @@ export async function registerUsername(username: string) {
 export async function updateStoredUsername(
   oldUsername: string,
   newUsername: string
-) {
+): Promise<void> {
   const usernames = await getAllUsernames();
   const oldNormalized = oldUsername.trim().toLowerCase();
   const newNormalized = newUsername.trim().toLowerCase();
@@ -101,6 +97,15 @@ export async function updateStoredUsername(
   await AsyncStorage.setItem(USERNAME_LIST_KEY, JSON.stringify(filtered));
 }
 
-export function generateRandomSixDigitCode() {
+export async function getProgress(): Promise<AppProgress> {
+  const raw = await AsyncStorage.getItem(PROGRESS_KEY);
+  return raw ? (JSON.parse(raw) as AppProgress) : DEFAULT_PROGRESS;
+}
+
+export async function saveProgress(progress: AppProgress): Promise<void> {
+  await AsyncStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+}
+
+export function generateRandomSixDigitCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }

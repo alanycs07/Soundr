@@ -8,6 +8,7 @@ type Props = {
   nextCleaningStep: () => void;
   prevCleaningStep: () => void;
   restartCleaning: () => void;
+  onFinishCleaning: () => void;
 };
 
 export default function CleaningScreen({
@@ -16,9 +17,11 @@ export default function CleaningScreen({
   nextCleaningStep,
   prevCleaningStep,
   restartCleaning,
+  onFinishCleaning,
 }: Props) {
   const currentCleaningCard = CLEANING_CARDS[cleaningStep];
   const cleaningProgress = ((cleaningStep + 1) / CLEANING_CARDS.length) * 100;
+  const isLastCard = cleaningStep === CLEANING_CARDS.length - 1;
 
   return (
     <View style={{ paddingHorizontal: 18 }}>
@@ -42,7 +45,7 @@ export default function CleaningScreen({
           lineHeight: 20,
         }}
       >
-        Pro feature preview. Later this will unlock for paid Pro users or for kit owners who redeem their unique 6-digit code.
+        Follow the step-by-step cleaning guide. Finish all cards to count today’s cleaning.
       </Text>
 
       <View
@@ -94,85 +97,44 @@ export default function CleaningScreen({
           borderWidth: 1.5,
           borderColor: '#2b4330',
           marginBottom: 18,
+          minHeight: 280,
+          justifyContent: 'space-between',
         }}
       >
-        <Text
-          style={{
-            color: '#00ff00',
-            fontSize: 12,
-            fontWeight: '800',
-            letterSpacing: 1.2,
-            marginBottom: 12,
-          }}
-        >
-          CLEANING GUIDE
-        </Text>
-
-        <Text
-          style={{
-            color: '#ffffff',
-            fontSize: 28,
-            fontWeight: '900',
-            lineHeight: 34,
-            marginBottom: 14,
-          }}
-        >
-          {currentCleaningCard.title}
-        </Text>
-
-        <Text
-          style={{
-            color: '#cfd8d1',
-            fontSize: 15,
-            lineHeight: 24,
-            marginBottom: 20,
-          }}
-        >
-          {currentCleaningCard.body}
-        </Text>
-
-        <View
-          style={{
-            height: 220,
-            borderRadius: 18,
-            borderWidth: 2,
-            borderColor: '#35503b',
-            borderStyle: 'dashed',
-            backgroundColor: '#0f0f1e',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: 20,
-            paddingHorizontal: 20,
-          }}
-        >
+        <View>
           <Text
             style={{
-              fontSize: 46,
-              marginBottom: 10,
+              color: '#00ff00',
+              fontSize: 12,
+              fontWeight: '800',
+              letterSpacing: 1.2,
+              marginBottom: 12,
             }}
           >
-            🎥
+            CLEANING GUIDE
           </Text>
+
           <Text
             style={{
               color: '#ffffff',
-              fontSize: 16,
-              fontWeight: '800',
-              marginBottom: 6,
-              textAlign: 'center',
+              fontSize: 28,
+              fontWeight: '900',
+              lineHeight: 34,
+              marginBottom: 14,
             }}
           >
-            Video placeholder
+            {currentCleaningCard.title}
           </Text>
+
           <Text
             style={{
-              color: '#718378',
-              fontSize: 12,
-              textAlign: 'center',
-              lineHeight: 18,
+              color: '#cfd8d1',
+              fontSize: 15,
+              lineHeight: 24,
+              marginBottom: 10,
             }}
           >
-            Drop your cleaning-step demo here later
+            {currentCleaningCard.body}
           </Text>
         </View>
 
@@ -184,6 +146,7 @@ export default function CleaningScreen({
               borderRadius: 14,
               paddingVertical: 16,
               alignItems: 'center',
+              marginTop: 20,
             }}
           >
             <Text
@@ -198,7 +161,7 @@ export default function CleaningScreen({
             </Text>
           </TouchableOpacity>
         ) : (
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row', marginTop: 20 }}>
             <TouchableOpacity
               onPress={prevCleaningStep}
               style={{
@@ -221,7 +184,7 @@ export default function CleaningScreen({
               </Text>
             </TouchableOpacity>
 
-            {cleaningStep < CLEANING_CARDS.length - 1 ? (
+            {!isLastCard ? (
               <TouchableOpacity
                 onPress={nextCleaningStep}
                 style={{
@@ -245,7 +208,10 @@ export default function CleaningScreen({
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                onPress={restartCleaning}
+                onPress={() => {
+                  onFinishCleaning();
+                  restartCleaning();
+                }}
                 style={{
                   flex: 1,
                   backgroundColor: '#00ff00',
@@ -262,7 +228,7 @@ export default function CleaningScreen({
                     fontSize: 15,
                   }}
                 >
-                  {currentCleaningCard.cta || 'Restart'}
+                  {currentCleaningCard.cta || 'Finish'}
                 </Text>
               </TouchableOpacity>
             )}

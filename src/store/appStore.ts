@@ -33,6 +33,20 @@ export type AppUser = {
   redeemedCode?: string | null;
 };
 
+export type DailyTaskStatus = {
+  hearingDone: boolean;
+  cleaningDone: boolean;
+  streakAwarded: boolean;
+};
+
+export type AppProgress = {
+  streak: number;
+  totalCleanings: number;
+  totalHearingTests: number;
+  lastCompletedDate: string | null;
+  dailyStatus: Record<string, DailyTaskStatus>;
+};
+
 export const ARENAS: Arena[] = [
   { id: 1, name: 'Arena 1', days: 30, reward: '🎖️' },
   { id: 2, name: 'Arena 2', days: 35, reward: '🏅' },
@@ -112,7 +126,7 @@ export const CLEANING_CARDS: CleaningCard[] = [
     title: 'Congratulations, you are done!',
     body:
       'Let the AirPods dry completely for at least a little while before use. Once everything is fully dry, place them back in the case.',
-    cta: 'Restart Guide',
+    cta: 'Finish Cleaning',
   },
 ];
 
@@ -123,3 +137,11 @@ export const TABS: { name: TabName; label: string; icon: string }[] = [
   { name: 'account', label: 'PROFILE', icon: '👤' },
   { name: 'plans', label: 'PLANS', icon: '💎' },
 ];
+
+export const DEFAULT_PROGRESS: AppProgress = {
+  streak: 0,
+  totalCleanings: 0,
+  totalHearingTests: 0,
+  lastCompletedDate: null,
+  dailyStatus: {},
+};
