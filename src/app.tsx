@@ -97,30 +97,33 @@ export default function App() {
 
   useEffect(() => {
     const load = async () => {
-      const [existingUser, storedProgress] = await Promise.all([getUser(), getProgress()]);
+      try {
+        const [existingUser, storedProgress] = await Promise.all([getUser(), getProgress()]);
 
-      let nextProgress = storedProgress;
-      const yesterday = getYesterdayKey();
+        let nextProgress = storedProgress;
+        const yesterday = getYesterdayKey();
 
-      if (
-        nextProgress.lastCompletedDate &&
-        nextProgress.lastCompletedDate !== getTodayKey() &&
-        nextProgress.lastCompletedDate !== yesterday &&
-        nextProgress.streak > 0
-      ) {
-        nextProgress = {
-          ...nextProgress,
-          streak: 0,
-        };
-        await saveProgress(nextProgress);
+        if (
+          nextProgress.lastCompletedDate &&
+          nextProgress.lastCompletedDate !== getTodayKey() &&
+          nextProgress.lastCompletedDate !== yesterday &&
+          nextProgress.streak > 0
+        ) {
+          nextProgress = {
+            ...nextProgress,
+            streak: 0,
+          };
+          await saveProgress(nextProgress);
+        }
+
+        if (existingUser) {
+          setUser(existingUser);
+        }
+
+        setProgress(nextProgress);
+      } finally {
+        setBootLoading(false);
       }
-
-      if (existingUser) {
-        setUser(existingUser);
-      }
-
-      setProgress(nextProgress);
-      setBootLoading(false);
     };
 
     void load();
@@ -431,17 +434,6 @@ export default function App() {
     setCurrentTab('home');
   };
 
-  const visibleTabs =
-    user?.mode === 'pro'
-      ? TABS
-      : TABS.filter((tab) => tab.name !== 'cleaning');
-
-  useEffect(() => {
-    if (user?.mode !== 'pro' && currentTab === 'cleaning') {
-      setCurrentTab('home');
-    }
-  }, [user, currentTab]);
-
   if (bootLoading) {
     return <View style={{ flex: 1, backgroundColor: '#0f0f1e' }} />;
   }
@@ -490,7 +482,7 @@ export default function App() {
           />
         )}
 
-        {currentTab === 'cleaning' && user.mode === 'pro' && (
+        {currentTab === 'cleaning' && (
           <CleaningScreen
             cleaningStep={cleaningStep}
             cleaningFade={cleaningFade}
@@ -498,6 +490,7 @@ export default function App() {
             prevCleaningStep={prevCleaningStep}
             restartCleaning={restartCleaning}
             onFinishCleaning={handleFinishCleaning}
+            isPro={user.mode === 'pro'}
           />
         )}
 
@@ -522,7 +515,7 @@ export default function App() {
           paddingBottom: 20,
         }}
       >
-        {visibleTabs.map((tab) => (
+        {TABS.map((tab) => (
           <TouchableOpacity
             key={tab.name}
             onPress={() => setCurrentTab(tab.name)}

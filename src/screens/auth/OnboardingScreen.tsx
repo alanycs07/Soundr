@@ -68,11 +68,15 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
   const continueAsBasic = () => {
     setPendingMode('basic');
+    setCode('');
+    setCodeError('');
     setStage('username');
   };
 
   const continueAsProPurchase = () => {
     setPendingMode('pro');
+    setCode('');
+    setCodeError('');
     setStage('username');
   };
 
@@ -113,11 +117,13 @@ export default function OnboardingScreen({ onComplete }: Props) {
       return;
     }
 
-    onComplete({
+    const newUser: AppUser = {
       username: finalUsername,
       mode: pendingMode,
       redeemedCode: pendingMode === 'pro' && code ? code : null,
-    });
+    };
+
+    onComplete(newUser);
   };
 
   if (stage === 'splash') {

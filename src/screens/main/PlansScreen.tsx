@@ -214,7 +214,7 @@ export default function PlansScreen() {
             'Daily streak tracking',
             'Standard hearing test',
             'Arena progress system',
-            'Basic account stats',
+            'Written cleaning guide',
           ].map((feature, index) => (
             <View
               key={feature}
@@ -404,7 +404,7 @@ export default function PlansScreen() {
             'Advanced hearing test ranges',
             'Deeper frequency breakdowns',
             'Expanded score insights',
-            'Cleaning guide access',
+            'Step-by-step cleaning videos',
           ].map((feature, index) => (
             <View
               key={feature}

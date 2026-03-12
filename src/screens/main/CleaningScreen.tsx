@@ -10,6 +10,7 @@ type Props = {
   prevCleaningStep: () => void;
   restartCleaning: () => void;
   onFinishCleaning: () => void;
+  isPro: boolean;
 };
 
 export default function CleaningScreen({
@@ -19,6 +20,7 @@ export default function CleaningScreen({
   prevCleaningStep,
   restartCleaning,
   onFinishCleaning,
+  isPro,
 }: Props) {
   const currentCleaningCard = CLEANING_CARDS[cleaningStep];
   const cleaningProgress = ((cleaningStep + 1) / CLEANING_CARDS.length) * 100;
@@ -48,7 +50,7 @@ export default function CleaningScreen({
         style={{
           fontSize: 13,
           color: '#666',
-          marginBottom: 22,
+          marginBottom: 16,
           fontWeight: '600',
           lineHeight: 20,
         }}
@@ -60,41 +62,181 @@ export default function CleaningScreen({
         style={{
           backgroundColor: '#1a1a2e',
           borderRadius: 14,
-          padding: 16,
+          padding: 14,
           marginBottom: 18,
           borderWidth: 1,
           borderColor: '#2b4330',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
-        <Text
-          style={{
-            color: '#8aa18f',
-            marginBottom: 10,
-            fontSize: 12,
-            fontWeight: '700',
-            letterSpacing: 0.5,
-          }}
-        >
-          STEP {cleaningStep + 1} / {CLEANING_CARDS.length}
-        </Text>
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <Text
+            style={{
+              color: '#8aa18f',
+              marginBottom: 10,
+              fontSize: 12,
+              fontWeight: '700',
+              letterSpacing: 0.5,
+            }}
+          >
+            STEP {cleaningStep + 1} / {CLEANING_CARDS.length}
+          </Text>
+
+          <View
+            style={{
+              height: 10,
+              backgroundColor: '#333',
+              borderRadius: 5,
+              overflow: 'hidden',
+            }}
+          >
+            <View
+              style={{
+                width: `${cleaningProgress}%`,
+                height: '100%',
+                backgroundColor: '#00ff00',
+              }}
+            />
+          </View>
+        </View>
 
         <View
           style={{
-            height: 10,
-            backgroundColor: '#333',
-            borderRadius: 5,
-            overflow: 'hidden',
+            backgroundColor: isPro ? 'rgba(0,255,0,0.14)' : '#252a28',
+            borderRadius: 999,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            borderWidth: 1,
+            borderColor: isPro ? '#00ff00' : '#38413d',
           }}
         >
-          <View
+          <Text
             style={{
-              width: `${cleaningProgress}%`,
-              height: '100%',
-              backgroundColor: '#00ff00',
+              color: isPro ? '#00ff00' : '#9aa5a0',
+              fontSize: 11,
+              fontWeight: '900',
+              letterSpacing: 0.6,
             }}
-          />
+          >
+            {isPro ? 'PRO GUIDE' : 'BASIC GUIDE'}
+          </Text>
         </View>
       </View>
+
+      {isPro ? (
+        <View
+          style={{
+            backgroundColor: '#1a1a2e',
+            borderRadius: 16,
+            padding: 16,
+            marginBottom: 18,
+            borderWidth: 1,
+            borderColor: '#2b4330',
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+            <Ionicons
+              name="videocam-outline"
+              size={16}
+              color="#00ff00"
+              style={{ marginRight: 8 }}
+            />
+            <Text
+              style={{
+                color: '#00ff00',
+                fontWeight: '800',
+                fontSize: 12,
+                letterSpacing: 1,
+              }}
+            >
+              PRO VIDEO GUIDE
+            </Text>
+          </View>
+
+          <View
+            style={{
+              backgroundColor: '#0f0f1e',
+              borderRadius: 14,
+              borderWidth: 1.5,
+              borderColor: '#304537',
+              borderStyle: 'dashed',
+              minHeight: 130,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingHorizontal: 20,
+            }}
+          >
+            <Ionicons
+              name="play-circle-outline"
+              size={42}
+              color="#00ff00"
+              style={{ marginBottom: 10 }}
+            />
+            <Text
+              style={{
+                color: '#ffffff',
+                fontWeight: '800',
+                fontSize: 15,
+                marginBottom: 6,
+              }}
+            >
+              Video placeholder
+            </Text>
+            <Text
+              style={{
+                color: '#7d8d84',
+                textAlign: 'center',
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
+              Pro users will see the cleaning demonstration video for this step here.
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <View
+          style={{
+            backgroundColor: '#1a1a2e',
+            borderRadius: 16,
+            padding: 14,
+            marginBottom: 18,
+            borderWidth: 1,
+            borderColor: '#2b4330',
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={15}
+              color="#8aa18f"
+              style={{ marginRight: 8 }}
+            />
+            <Text
+              style={{
+                color: '#8aa18f',
+                fontWeight: '800',
+                fontSize: 12,
+                letterSpacing: 0.6,
+              }}
+            >
+              PRO VIDEO LOCKED
+            </Text>
+          </View>
+
+          <Text
+            style={{
+              color: '#6f8574',
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
+            Basic users can still follow the full written cleaning guide. Upgrade to Pro for step-by-step video demonstrations.
+          </Text>
+        </View>
+      )}
 
       <Animated.View
         style={{
