@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ARENAS } from '../../store/appStore';
 
 type Props = {
@@ -72,7 +73,7 @@ export default function HomeScreen({
             borderColor: '#00ff00',
           }}
         >
-          <Text style={{ fontSize: 56 }}>🔥</Text>
+          <Ionicons name="flame-outline" size={54} color="#00ff00" />
         </View>
 
         <Text
@@ -119,17 +120,24 @@ export default function HomeScreen({
           borderColor: '#2b4330',
         }}
       >
-        <Text
-          style={{
-            color: '#00ff00',
-            fontWeight: '900',
-            fontSize: 13,
-            marginBottom: 14,
-            letterSpacing: 1,
-          }}
-        >
-          TODAY'S PROGRESS
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+          <Ionicons
+            name="checkmark-done-outline"
+            size={16}
+            color="#00ff00"
+            style={{ marginRight: 8 }}
+          />
+          <Text
+            style={{
+              color: '#00ff00',
+              fontWeight: '900',
+              fontSize: 13,
+              letterSpacing: 1,
+            }}
+          >
+            TODAY'S PROGRESS
+          </Text>
+        </View>
 
         <View
           style={{
@@ -141,15 +149,23 @@ export default function HomeScreen({
           <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
             Hearing test
           </Text>
-          <Text
-            style={{
-              color: todayHearingDone ? '#00ff00' : '#888',
-              fontSize: 14,
-              fontWeight: '900',
-            }}
-          >
-            {todayHearingDone ? 'DONE ✓' : 'NOT DONE'}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons
+              name={todayHearingDone ? 'checkmark-circle-outline' : 'ellipse-outline'}
+              size={16}
+              color={todayHearingDone ? '#00ff00' : '#888'}
+              style={{ marginRight: 6 }}
+            />
+            <Text
+              style={{
+                color: todayHearingDone ? '#00ff00' : '#888',
+                fontSize: 14,
+                fontWeight: '900',
+              }}
+            >
+              {todayHearingDone ? 'DONE' : 'NOT DONE'}
+            </Text>
+          </View>
         </View>
 
         <View
@@ -161,15 +177,23 @@ export default function HomeScreen({
           <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
             Cleaning guide
           </Text>
-          <Text
-            style={{
-              color: todayCleaningDone ? '#00ff00' : '#888',
-              fontSize: 14,
-              fontWeight: '900',
-            }}
-          >
-            {todayCleaningDone ? 'DONE ✓' : 'NOT DONE'}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons
+              name={todayCleaningDone ? 'checkmark-circle-outline' : 'ellipse-outline'}
+              size={16}
+              color={todayCleaningDone ? '#00ff00' : '#888'}
+              style={{ marginRight: 6 }}
+            />
+            <Text
+              style={{
+                color: todayCleaningDone ? '#00ff00' : '#888',
+                fontSize: 14,
+                fontWeight: '900',
+              }}
+            >
+              {todayCleaningDone ? 'DONE' : 'NOT DONE'}
+            </Text>
+          </View>
         </View>
 
         <Text
@@ -195,17 +219,24 @@ export default function HomeScreen({
             borderColor: '#00ff00',
           }}
         >
-          <Text
-            style={{
-              fontWeight: '900',
-              color: '#00ff00',
-              marginBottom: 20,
-              fontSize: 16,
-              letterSpacing: 1,
-            }}
-          >
-            🗺️ ARENA MAP
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+            <Ionicons
+              name="map-outline"
+              size={18}
+              color="#00ff00"
+              style={{ marginRight: 8 }}
+            />
+            <Text
+              style={{
+                fontWeight: '900',
+                color: '#00ff00',
+                fontSize: 16,
+                letterSpacing: 1,
+              }}
+            >
+              ARENA MAP
+            </Text>
+          </View>
 
           <View
             style={{
@@ -248,16 +279,23 @@ export default function HomeScreen({
                 />
               </View>
 
-              <Text
-                style={{
-                  color: '#666',
-                  marginTop: 10,
-                  fontSize: 12,
-                  fontWeight: '600',
-                }}
-              >
-                {arenaProgress}% • Reward: {ARENAS[currentArena - 1].reward}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 10 }}>
+                <MaterialCommunityIcons
+                  name="trophy-outline"
+                  size={14}
+                  color="#666"
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={{
+                    color: '#666',
+                    fontSize: 12,
+                    fontWeight: '600',
+                  }}
+                >
+                  {arenaProgress}% • Reward: {ARENAS[currentArena - 1].reward}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -289,20 +327,19 @@ export default function HomeScreen({
                   borderColor: currentArena === arena.id ? '#00ff00' : 'transparent',
                 }}
               >
-                <Text
-                  style={{
-                    fontWeight: '900',
-                    color:
-                      currentArena === arena.id
-                        ? '#000'
-                        : arena.id < currentArena
-                        ? '#00ff00'
-                        : '#666',
-                    fontSize: 16,
-                  }}
-                >
-                  {arena.id < currentArena ? '✓' : arena.id}
-                </Text>
+                {arena.id < currentArena ? (
+                  <Ionicons name="checkmark" size={18} color="#00ff00" />
+                ) : (
+                  <Text
+                    style={{
+                      fontWeight: '900',
+                      color: currentArena === arena.id ? '#000' : '#666',
+                      fontSize: 16,
+                    }}
+                  >
+                    {arena.id}
+                  </Text>
+                )}
               </View>
             ))}
           </View>
@@ -310,17 +347,24 @@ export default function HomeScreen({
       )}
 
       <View style={{ marginBottom: 36 }}>
-        <Text
-          style={{
-            fontSize: 14,
-            fontWeight: '900',
-            color: '#00ff00',
-            marginBottom: 16,
-            letterSpacing: 1,
-          }}
-        >
-          🏆 ACHIEVEMENTS
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+          <Ionicons
+            name="ribbon-outline"
+            size={18}
+            color="#00ff00"
+            style={{ marginRight: 8 }}
+          />
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '900',
+              color: '#00ff00',
+              letterSpacing: 1,
+            }}
+          >
+            ACHIEVEMENTS
+          </Text>
+        </View>
 
         <View
           style={{
@@ -333,8 +377,14 @@ export default function HomeScreen({
             borderStyle: 'dashed',
           }}
         >
+          <Ionicons
+            name="rocket-outline"
+            size={22}
+            color="#666"
+            style={{ marginBottom: 10 }}
+          />
           <Text style={{ color: '#666', fontSize: 14, fontWeight: '600' }}>
-            Coming Soon 🚀
+            Coming Soon
           </Text>
         </View>
       </View>

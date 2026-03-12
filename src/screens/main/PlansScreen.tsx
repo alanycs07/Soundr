@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function PlansScreen() {
   return (
@@ -49,8 +50,16 @@ export default function PlansScreen() {
               borderRadius: 999,
               paddingVertical: 8,
               paddingHorizontal: 18,
+              flexDirection: 'row',
+              alignItems: 'center',
             }}
           >
+            <Ionicons
+              name="calendar-outline"
+              size={14}
+              color="#000"
+              style={{ marginRight: 6 }}
+            />
             <Text
               style={{
                 color: '#000',
@@ -67,8 +76,16 @@ export default function PlansScreen() {
               borderRadius: 999,
               paddingVertical: 8,
               paddingHorizontal: 18,
+              flexDirection: 'row',
+              alignItems: 'center',
             }}
           >
+            <Ionicons
+              name="calendar-clear-outline"
+              size={14}
+              color="#6d7b70"
+              style={{ marginRight: 6 }}
+            />
             <Text
               style={{
                 color: '#6d7b70',
@@ -101,16 +118,23 @@ export default function PlansScreen() {
             minHeight: 470,
           }}
         >
-          <Text
-            style={{
-              color: '#dce8df',
-              fontSize: 17,
-              fontWeight: '800',
-              marginBottom: 16,
-            }}
-          >
-            Basic
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+            <Ionicons
+              name="leaf-outline"
+              size={18}
+              color="#dce8df"
+              style={{ marginRight: 8 }}
+            />
+            <Text
+              style={{
+                color: '#dce8df',
+                fontSize: 17,
+                fontWeight: '800',
+              }}
+            >
+              Basic
+            </Text>
+          </View>
 
           <Text
             style={{
@@ -134,8 +158,16 @@ export default function PlansScreen() {
               marginBottom: 16,
               borderWidth: 1,
               borderColor: '#2d3b30',
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
           >
+            <Ionicons
+              name="arrow-forward-circle-outline"
+              size={16}
+              color="#ffffff"
+              style={{ marginRight: 8 }}
+            />
             <Text
               style={{
                 color: '#ffffff',
@@ -192,16 +224,12 @@ export default function PlansScreen() {
                 marginBottom: index === 3 ? 0 : 10,
               }}
             >
-              <Text
-                style={{
-                  color: '#00ff00',
-                  fontSize: 15,
-                  marginRight: 8,
-                  fontWeight: '900',
-                }}
-              >
-                ✓
-              </Text>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={16}
+                color="#00ff00"
+                style={{ marginRight: 8, marginTop: 1 }}
+              />
               <Text
                 style={{
                   color: '#d7e2d9',
@@ -235,15 +263,23 @@ export default function PlansScreen() {
               marginBottom: 16,
             }}
           >
-            <Text
-              style={{
-                color: '#ffffff',
-                fontSize: 17,
-                fontWeight: '800',
-              }}
-            >
-              Pro
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <MaterialCommunityIcons
+                name="crown-outline"
+                size={18}
+                color="#ffffff"
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                style={{
+                  color: '#ffffff',
+                  fontSize: 17,
+                  fontWeight: '800',
+                }}
+              >
+                Pro
+              </Text>
+            </View>
 
             <View
               style={{
@@ -251,8 +287,16 @@ export default function PlansScreen() {
                 borderRadius: 999,
                 paddingHorizontal: 8,
                 paddingVertical: 4,
+                flexDirection: 'row',
+                alignItems: 'center',
               }}
             >
+              <Ionicons
+                name="star-outline"
+                size={10}
+                color="#000"
+                style={{ marginRight: 4 }}
+              />
               <Text
                 style={{
                   color: '#000',
@@ -304,8 +348,16 @@ export default function PlansScreen() {
               paddingVertical: 14,
               alignItems: 'center',
               marginBottom: 16,
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
           >
+            <Ionicons
+              name="flash-outline"
+              size={16}
+              color="#000"
+              style={{ marginRight: 8 }}
+            />
             <Text
               style={{
                 color: '#000',
@@ -362,16 +414,12 @@ export default function PlansScreen() {
                 marginBottom: index === 3 ? 0 : 10,
               }}
             >
-              <Text
-                style={{
-                  color: '#00ff00',
-                  fontSize: 15,
-                  marginRight: 8,
-                  fontWeight: '900',
-                }}
-              >
-                ✓
-              </Text>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={16}
+                color="#00ff00"
+                style={{ marginRight: 8, marginTop: 1 }}
+              />
               <Text
                 style={{
                   color: '#d7e2d9',

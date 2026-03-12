@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import OnboardingScreen from './screens/auth/OnboardingScreen';
 import CleaningScreen from './screens/main/CleaningScreen';
 import HearingTestScreen from './screens/main/HearingTestScreen';
@@ -39,6 +40,35 @@ function deriveArenaFromStreak(streak: number) {
   const currentArena = Math.min(Math.floor(streak / 5) + 1, 10);
   const arenaProgress = (streak % 5) * 20;
   return { currentArena, arenaProgress };
+}
+
+function TabIcon({
+  tabName,
+  active,
+}: {
+  tabName: TabName;
+  active: boolean;
+}) {
+  const color = active ? '#00ff00' : '#666';
+  const size = 20;
+
+  if (tabName === 'home') {
+    return <Ionicons name="home-outline" size={size} color={color} />;
+  }
+
+  if (tabName === 'hearing') {
+    return <Ionicons name="headset-outline" size={size} color={color} />;
+  }
+
+  if (tabName === 'cleaning') {
+    return <MaterialCommunityIcons name="spray-bottle" size={size} color={color} />;
+  }
+
+  if (tabName === 'account') {
+    return <Ionicons name="person-outline" size={size} color={color} />;
+  }
+
+  return <Ionicons name="diamond-outline" size={size} color={color} />;
 }
 
 export default function App() {
@@ -498,13 +528,14 @@ export default function App() {
             onPress={() => setCurrentTab(tab.name)}
             style={{ flex: 1, alignItems: 'center', paddingVertical: 10 }}
           >
-            <Text style={{ fontSize: 20, marginBottom: 4 }}>{tab.icon}</Text>
+            <TabIcon tabName={tab.name} active={currentTab === tab.name} />
             <Text
               style={{
                 fontSize: 10,
                 color: currentTab === tab.name ? '#00ff00' : '#666',
                 fontWeight: '700',
                 letterSpacing: 0.3,
+                marginTop: 4,
               }}
             >
               {tab.label}

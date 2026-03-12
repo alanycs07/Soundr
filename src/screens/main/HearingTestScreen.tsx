@@ -1,5 +1,6 @@
 import React from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   EarSide,
   Frequency,
@@ -98,22 +99,28 @@ export default function HearingTestScreen({
   handleHearingResponse,
   resetHearingTest,
 }: Props) {
-  // ✅ WORKING SOUND FUNCTION
   const playSoundWithWebAudio = async () => {
+    playSound();
+
     try {
-      const audioContext = new (window as any).AudioContext || new (window as any).webkitAudioContext();
+      const AudioCtx =
+        (globalThis as any).AudioContext || (globalThis as any).webkitAudioContext;
+
+      if (!AudioCtx) return;
+
+      const audioContext = new AudioCtx();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
       oscillator.frequency.value = selectedFrequency;
       oscillator.type = 'sine';
-      
+
       gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      
+
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
     } catch (error) {
@@ -134,16 +141,23 @@ export default function HearingTestScreen({
 
   return (
     <View style={{ paddingHorizontal: 18 }}>
-      <Text
-        style={{
-          fontSize: 40,
-          fontWeight: '900',
-          color: '#ffffff',
-          marginBottom: 10,
-        }}
-      >
-        🎧 Test
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+        <Ionicons
+          name="headset-outline"
+          size={30}
+          color="#00ff00"
+          style={{ marginRight: 10 }}
+        />
+        <Text
+          style={{
+            fontSize: 40,
+            fontWeight: '900',
+            color: '#ffffff',
+          }}
+        >
+          Test
+        </Text>
+      </View>
 
       <Text
         style={{
@@ -168,18 +182,25 @@ export default function HearingTestScreen({
               borderColor: '#00ff00',
             }}
           >
-            <Text
-              style={{
-                color: '#666',
-                marginBottom: 16,
-                fontSize: 12,
-                textTransform: 'uppercase',
-                letterSpacing: 2,
-                fontWeight: '700',
-              }}
-            >
-              {currentEar === 'left' ? '👈 LEFT EAR' : '👉 RIGHT EAR'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+              <MaterialCommunityIcons
+                name={currentEar === 'left' ? 'ear-hearing' : 'ear-hearing'}
+                size={16}
+                color="#666"
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                style={{
+                  color: '#666',
+                  fontSize: 12,
+                  textTransform: 'uppercase',
+                  letterSpacing: 2,
+                  fontWeight: '700',
+                }}
+              >
+                {currentEar === 'left' ? 'LEFT EAR' : 'RIGHT EAR'}
+              </Text>
+            </View>
 
             <Text
               style={{
@@ -224,8 +245,16 @@ export default function HearingTestScreen({
                 paddingVertical: 18,
                 marginBottom: 24,
                 alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
               }}
             >
+              <Ionicons
+                name={isPlayingSound ? 'volume-high-outline' : 'play-circle-outline'}
+                size={18}
+                color="#000"
+                style={{ marginRight: 8 }}
+              />
               <Text
                 style={{
                   color: '#000',
@@ -234,7 +263,7 @@ export default function HearingTestScreen({
                   letterSpacing: 0.5,
                 }}
               >
-                {isPlayingSound ? '🔊 PLAYING' : '▶️ PLAY TONE'}
+                {isPlayingSound ? 'PLAYING' : 'PLAY TONE'}
               </Text>
             </TouchableOpacity>
 
@@ -250,10 +279,18 @@ export default function HearingTestScreen({
                   borderWidth: 2,
                   borderColor: '#555',
                   marginRight: 6,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
                 }}
               >
+                <Ionicons
+                  name="close-circle-outline"
+                  size={16}
+                  color="#fff"
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={{ color: '#fff', fontWeight: '800', fontSize: 15 }}>
-                  ✗ NO
+                  NO
                 </Text>
               </TouchableOpacity>
 
@@ -268,10 +305,18 @@ export default function HearingTestScreen({
                   borderWidth: 2,
                   borderColor: '#00ff00',
                   marginLeft: 6,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
                 }}
               >
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={16}
+                  color="#000"
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={{ color: '#000', fontWeight: '900', fontSize: 15 }}>
-                  ✓ YES
+                  YES
                 </Text>
               </TouchableOpacity>
             </View>
@@ -412,16 +457,23 @@ export default function HearingTestScreen({
               borderColor: '#2b4330',
             }}
           >
-            <Text
-              style={{
-                fontSize: 17,
-                color: '#e8f5ea',
-                fontWeight: '800',
-                marginBottom: 16,
-              }}
-            >
-              Hearing Statistics
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+              <Ionicons
+                name="stats-chart-outline"
+                size={18}
+                color="#e8f5ea"
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                style={{
+                  fontSize: 17,
+                  color: '#e8f5ea',
+                  fontWeight: '800',
+                }}
+              >
+                Hearing Statistics
+              </Text>
+            </View>
 
             <View
               style={{
@@ -474,18 +526,25 @@ export default function HearingTestScreen({
               borderColor: '#2b4330',
             }}
           >
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: '900',
-                color: '#00ff00',
-                marginBottom: 18,
-                textTransform: 'uppercase',
-                letterSpacing: 1,
-              }}
-            >
-              Frequency Breakdown
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 18 }}>
+              <MaterialCommunityIcons
+                name="tune-vertical"
+                size={18}
+                color="#00ff00"
+                style={{ marginRight: 8 }}
+              />
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '900',
+                  color: '#00ff00',
+                  textTransform: 'uppercase',
+                  letterSpacing: 1,
+                }}
+              >
+                Frequency Breakdown
+              </Text>
+            </View>
 
             {frequencyResults.map((freq) => (
               <View key={freq.hz} style={{ marginBottom: 18 }}>
@@ -548,8 +607,16 @@ export default function HearingTestScreen({
               paddingVertical: 18,
               alignItems: 'center',
               marginBottom: 20,
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
           >
+            <Ionicons
+              name="refresh-outline"
+              size={18}
+              color="#000"
+              style={{ marginRight: 8 }}
+            />
             <Text
               style={{
                 color: '#000',
@@ -558,7 +625,7 @@ export default function HearingTestScreen({
                 letterSpacing: 0.5,
               }}
             >
-              🔄 RETAKE TEST
+              RETAKE TEST
             </Text>
           </TouchableOpacity>
         </Animated.View>

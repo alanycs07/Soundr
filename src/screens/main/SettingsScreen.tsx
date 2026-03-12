@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AppUser } from '../../store/appStore';
 
 type Props = {
@@ -19,16 +20,23 @@ export default function SettingsScreen({
 
   return (
     <View style={{ paddingHorizontal: 18 }}>
-      <Text
-        style={{
-          fontSize: 40,
-          fontWeight: '900',
-          color: '#ffffff',
-          marginBottom: 32,
-        }}
-      >
-        👤 Profile
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 32 }}>
+        <Ionicons
+          name="person-circle-outline"
+          size={30}
+          color="#00ff00"
+          style={{ marginRight: 10 }}
+        />
+        <Text
+          style={{
+            fontSize: 40,
+            fontWeight: '900',
+            color: '#ffffff',
+          }}
+        >
+          Profile
+        </Text>
+      </View>
 
       <View
         style={{
@@ -53,7 +61,7 @@ export default function SettingsScreen({
             borderColor: '#00ff00',
           }}
         >
-          <Text style={{ fontSize: 40 }}>👤</Text>
+          <Ionicons name="person-outline" size={36} color="#00ff00" />
         </View>
 
         <Text
@@ -96,8 +104,16 @@ export default function SettingsScreen({
                 paddingVertical: 12,
                 alignItems: 'center',
                 marginBottom: 12,
+                flexDirection: 'row',
+                justifyContent: 'center',
               }}
             >
+              <Ionicons
+                name="create-outline"
+                size={16}
+                color="#000"
+                style={{ marginRight: 8 }}
+              />
               <Text
                 style={{
                   color: '#000',
@@ -105,7 +121,7 @@ export default function SettingsScreen({
                   fontSize: 14,
                 }}
               >
-                ✏️ EDIT USERNAME
+                EDIT USERNAME
               </Text>
             </TouchableOpacity>
 
@@ -118,8 +134,16 @@ export default function SettingsScreen({
                 alignItems: 'center',
                 borderWidth: 1,
                 borderColor: '#ff5a5a',
+                flexDirection: 'row',
+                justifyContent: 'center',
               }}
             >
+              <Ionicons
+                name="log-out-outline"
+                size={16}
+                color="#ff8d8d"
+                style={{ marginRight: 8 }}
+              />
               <Text
                 style={{
                   color: '#ff8d8d',
@@ -127,7 +151,7 @@ export default function SettingsScreen({
                   fontSize: 14,
                 }}
               >
-                🚪 LOG OUT
+                LOG OUT
               </Text>
             </TouchableOpacity>
           </>
@@ -182,8 +206,16 @@ export default function SettingsScreen({
                   paddingVertical: 12,
                   alignItems: 'center',
                   marginRight: 6,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
                 }}
               >
+                <Ionicons
+                  name="close-outline"
+                  size={16}
+                  color="#fff"
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={{ color: '#fff', fontWeight: '800' }}>Cancel</Text>
               </TouchableOpacity>
 
@@ -213,8 +245,16 @@ export default function SettingsScreen({
                   paddingVertical: 12,
                   alignItems: 'center',
                   marginLeft: 6,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
                 }}
               >
+                <Ionicons
+                  name="save-outline"
+                  size={16}
+                  color="#000"
+                  style={{ marginRight: 6 }}
+                />
                 <Text style={{ color: '#000', fontWeight: '900' }}>Save</Text>
               </TouchableOpacity>
             </View>

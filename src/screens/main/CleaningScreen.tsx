@@ -1,5 +1,6 @@
 import React from 'react';
 import { Animated, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CLEANING_CARDS } from '../../store/appStore';
 
 type Props = {
@@ -25,16 +26,23 @@ export default function CleaningScreen({
 
   return (
     <View style={{ paddingHorizontal: 18 }}>
-      <Text
-        style={{
-          fontSize: 40,
-          fontWeight: '900',
-          color: '#ffffff',
-          marginBottom: 10,
-        }}
-      >
-        🧼 Cleaning
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+        <MaterialCommunityIcons
+          name="spray-bottle"
+          size={30}
+          color="#00ff00"
+          style={{ marginRight: 10 }}
+        />
+        <Text
+          style={{
+            fontSize: 40,
+            fontWeight: '900',
+            color: '#ffffff',
+          }}
+        >
+          Cleaning
+        </Text>
+      </View>
 
       <Text
         style={{
@@ -102,17 +110,24 @@ export default function CleaningScreen({
         }}
       >
         <View>
-          <Text
-            style={{
-              color: '#00ff00',
-              fontSize: 12,
-              fontWeight: '800',
-              letterSpacing: 1.2,
-              marginBottom: 12,
-            }}
-          >
-            CLEANING GUIDE
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <Ionicons
+              name="layers-outline"
+              size={16}
+              color="#00ff00"
+              style={{ marginRight: 8 }}
+            />
+            <Text
+              style={{
+                color: '#00ff00',
+                fontSize: 12,
+                fontWeight: '800',
+                letterSpacing: 1.2,
+              }}
+            >
+              CLEANING GUIDE
+            </Text>
+          </View>
 
           <Text
             style={{
@@ -147,8 +162,16 @@ export default function CleaningScreen({
               paddingVertical: 16,
               alignItems: 'center',
               marginTop: 20,
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
           >
+            <Ionicons
+              name="play-circle-outline"
+              size={18}
+              color="#000"
+              style={{ marginRight: 8 }}
+            />
             <Text
               style={{
                 color: '#000',
@@ -171,8 +194,16 @@ export default function CleaningScreen({
                 paddingVertical: 16,
                 alignItems: 'center',
                 marginRight: 6,
+                flexDirection: 'row',
+                justifyContent: 'center',
               }}
             >
+              <Ionicons
+                name="arrow-back-outline"
+                size={16}
+                color="#fff"
+                style={{ marginRight: 6 }}
+              />
               <Text
                 style={{
                   color: '#fff',
@@ -180,7 +211,7 @@ export default function CleaningScreen({
                   fontSize: 15,
                 }}
               >
-                ← Back
+                Back
               </Text>
             </TouchableOpacity>
 
@@ -194,6 +225,8 @@ export default function CleaningScreen({
                   paddingVertical: 16,
                   alignItems: 'center',
                   marginLeft: 6,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
                 }}
               >
                 <Text
@@ -203,8 +236,14 @@ export default function CleaningScreen({
                     fontSize: 15,
                   }}
                 >
-                  Next →
+                  Next
                 </Text>
+                <Ionicons
+                  name="arrow-forward-outline"
+                  size={16}
+                  color="#000"
+                  style={{ marginLeft: 6 }}
+                />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -219,8 +258,16 @@ export default function CleaningScreen({
                   paddingVertical: 16,
                   alignItems: 'center',
                   marginLeft: 6,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
                 }}
               >
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={16}
+                  color="#000"
+                  style={{ marginRight: 6 }}
+                />
                 <Text
                   style={{
                     color: '#000',
