@@ -4,6 +4,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import OnboardingScreen from './screens/auth/OnboardingScreen';
 import AboutScreen from './screens/main/AboutScreen';
 import CleaningScreen from './screens/main/CleaningScreen';
+import DailyListeningCheckInModal from './screens/main/DailyListeningCheckInModal';
 import HearingTestScreen from './screens/main/HearingTestScreen';
 import HomeScreen from './screens/main/HomeScreen';
 import PlansScreen from './screens/main/PlansScreen';
@@ -13,6 +14,7 @@ import {
   ARENAS,
   AppProgress,
   AppUser,
+  DailyListeningSurvey,
   DEFAULT_PROGRESS,
   FREQUENCIES,
   HearingResponse,
@@ -39,10 +41,10 @@ function getYesterdayKey() {
   return d.toISOString().slice(0, 10);
 }
 
-function deriveArenaFromStreak(streak: number) {
+function deriveArenaFromRoadPoints(roadPoints: number) {
   const arenaCount = ARENAS.length;
-  const currentArena = Math.min(Math.floor(streak / ARENA_DAYS) + 1, arenaCount);
-  const arenaProgress = ((streak % ARENA_DAYS) / ARENA_DAYS) * 100;
+  const currentArena = Math.min(Math.floor(roadPoints / ARENA_DAYS) + 1, arenaCount);
+  const arenaProgress = ((roadPoints % ARENA_DAYS) / ARENA_DAYS) * 100;
   return { currentArena, arenaProgress };
 }
 
@@ -86,6 +88,7 @@ export default function App() {
 
   const [progress, setProgress] = useState<AppProgress>(DEFAULT_PROGRESS);
   const [showArenaMap, setShowArenaMap] = useState(false);
+  const [showDailySurvey, setShowDailySurvey] = useState(false);
 
   const [selectedFrequency, setSelectedFrequency] = useState<number>(FREQUENCIES[0].hz);
   const [currentEar, setCurrentEar] = useState<'left' | 'right'>('left');
@@ -139,15 +142,24 @@ export default function App() {
   }, []);
 
   const { currentArena, arenaProgress } = useMemo(() => {
-    return deriveArenaFromStreak(progress.streak);
-  }, [progress.streak]);
+    return deriveArenaFromRoadPoints(progress.roadPoints);
+  }, [progress.roadPoints]);
 
   const todayKey = getTodayKey();
   const todayStatus = progress.dailyStatus[todayKey] || {
     hearingDone: false,
     cleaningDone: false,
+    surveyDone: false,
     streakAwarded: false,
   };
+
+  useEffect(() => {
+    if (!bootLoading && user?.mode === 'pro') {
+      setShowDailySurvey(!todayStatus.surveyDone);
+    } else {
+      setShowDailySurvey(false);
+    }
+  }, [bootLoading, user, todayStatus.surveyDone]);
 
   const completedFrequencyCount = useMemo(() => {
     return Object.values(hearingResponses).filter(
@@ -201,6 +213,7 @@ export default function App() {
     const todayEntry = incomingProgress.dailyStatus[today] || {
       hearingDone: false,
       cleaningDone: false,
+      surveyDone: false,
       streakAwarded: false,
     };
 
@@ -218,6 +231,7 @@ export default function App() {
       nextProgress = {
         ...nextProgress,
         streak: nextStreak,
+        roadPoints: nextProgress.roadPoints + 1,
         lastCompletedDate: today,
         dailyStatus: {
           ...nextProgress.dailyStatus,
@@ -242,6 +256,7 @@ export default function App() {
     const todayEntry = current.dailyStatus[today] || {
       hearingDone: false,
       cleaningDone: false,
+      surveyDone: false,
       streakAwarded: false,
     };
 
@@ -271,6 +286,7 @@ export default function App() {
     const todayEntry = current.dailyStatus[today] || {
       hearingDone: false,
       cleaningDone: false,
+      surveyDone: false,
       streakAwarded: false,
     };
 
@@ -289,6 +305,42 @@ export default function App() {
     };
 
     await awardDailyStreakIfEligible(nextProgress);
+  };
+
+  const submitDailyListeningSurvey = async (survey: DailyListeningSurvey) => {
+    if (!user || user.mode !== 'pro') return;
+
+    const today = getTodayKey();
+    const current = await getProgress(user.username);
+
+    const todayEntry = current.dailyStatus[today] || {
+      hearingDone: false,
+      cleaningDone: false,
+      surveyDone: false,
+      streakAwarded: false,
+    };
+
+    const alreadyDone = todayEntry.surveyDone;
+
+    const nextProgress: AppProgress = {
+      ...current,
+      roadPoints: alreadyDone ? current.roadPoints : current.roadPoints + 2,
+      dailyStatus: {
+        ...current.dailyStatus,
+        [today]: {
+          ...todayEntry,
+          surveyDone: true,
+        },
+      },
+      dailySurveys: {
+        ...current.dailySurveys,
+        [today]: survey,
+      },
+    };
+
+    setProgress(nextProgress);
+    await saveProgress(user.username, nextProgress);
+    setShowDailySurvey(false);
   };
 
   const completeHearingTest = async (
@@ -486,6 +538,7 @@ export default function App() {
     setProgress(DEFAULT_PROGRESS);
     setCurrentTab('home');
     setShowArenaMap(false);
+    setShowDailySurvey(false);
     setCleaningStep(0);
     setTestComplete(false);
     setHearingResponses({});
@@ -520,6 +573,8 @@ export default function App() {
             setShowArenaMap={setShowArenaMap}
             todayHearingDone={todayStatus.hearingDone}
             todayCleaningDone={todayStatus.cleaningDone}
+            todaySurveyDone={user.mode === 'pro' ? todayStatus.surveyDone : undefined}
+            isPro={user.mode === 'pro'}
           />
         )}
 
@@ -561,6 +616,7 @@ export default function App() {
         {currentTab === 'account' && (
           <SettingsScreen
             user={user}
+            progress={progress}
             onSaveUsername={saveUsername}
             onLogout={handleLogout}
           />
@@ -600,6 +656,13 @@ export default function App() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {user.mode === 'pro' && (
+        <DailyListeningCheckInModal
+          visible={showDailySurvey}
+          onSubmit={submitDailyListeningSurvey}
+        />
+      )}
     </View>
   );
 }

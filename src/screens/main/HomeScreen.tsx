@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { ARENA_DAYS, ARENAS } from '../../store/appStore';
+import { ARENAS } from '../../store/appStore';
 
 type Props = {
   streak: number;
@@ -11,175 +11,9 @@ type Props = {
   setShowArenaMap: (value: boolean) => void;
   todayHearingDone: boolean;
   todayCleaningDone: boolean;
+  todaySurveyDone?: boolean;
+  isPro: boolean;
 };
-
-const DAYS_PER_SEGMENT = 5;
-const SEGMENTS_PER_ARENA = ARENA_DAYS / DAYS_PER_SEGMENT;
-
-function getArenaStatus(arenaId: number, currentArena: number) {
-  if (arenaId < currentArena) return 'completed';
-  if (arenaId === currentArena) return 'active';
-  return 'locked';
-}
-
-function getArenaDaysProgress(streak: number, arenaId: number) {
-  const daysBeforeArena = (arenaId - 1) * ARENA_DAYS;
-  const daysIntoArena = streak - daysBeforeArena;
-
-  if (daysIntoArena <= 0) return 0;
-  if (daysIntoArena >= ARENA_DAYS) return ARENA_DAYS;
-  return daysIntoArena;
-}
-
-function ArenaRoad({
-  streak,
-  currentArena,
-  selectedArenaId,
-  onSelectArena,
-}: {
-  streak: number;
-  currentArena: number;
-  selectedArenaId: number;
-  onSelectArena: (arenaId: number) => void;
-}) {
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{
-        paddingRight: 20,
-      }}
-    >
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          paddingVertical: 18,
-          minHeight: 120,
-        }}
-      >
-        {ARENAS.map((arena, arenaIndex) => {
-          const status = getArenaStatus(arena.id, currentArena);
-          const isSelected = selectedArenaId === arena.id;
-          const daysProgress = getArenaDaysProgress(streak, arena.id);
-          const filledSegments = Math.floor(daysProgress / DAYS_PER_SEGMENT);
-
-          return (
-            <View
-              key={arena.id}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => onSelectArena(arena.id)}
-                style={{
-                  width: 62,
-                  alignItems: 'center',
-                }}
-              >
-                <View
-                  style={{
-                    width: 52,
-                    height: 52,
-                    borderRadius: 26,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor:
-                      status === 'completed'
-                        ? '#123524'
-                        : status === 'active'
-                        ? '#00ff00'
-                        : '#2c2f37',
-                    borderWidth: isSelected ? 3 : 2,
-                    borderColor:
-                      isSelected
-                        ? '#ffffff'
-                        : status === 'completed' || status === 'active'
-                        ? '#00ff00'
-                        : '#505564',
-                    shadowColor: status === 'active' ? '#00ff00' : '#000',
-                    shadowOpacity: status === 'active' ? 0.35 : 0.12,
-                    shadowRadius: status === 'active' ? 10 : 4,
-                  }}
-                >
-                  {status === 'completed' ? (
-                    <Ionicons name="checkmark" size={20} color="#00ff00" />
-                  ) : (
-                    <Text
-                      style={{
-                        color: status === 'active' ? '#000' : '#9ea4b1',
-                        fontWeight: '900',
-                        fontSize: 15,
-                      }}
-                    >
-                      {arena.id}
-                    </Text>
-                  )}
-                </View>
-
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    marginTop: 8,
-                    width: 72,
-                    textAlign: 'center',
-                    color: isSelected ? '#ffffff' : '#7b848d',
-                    fontSize: 10,
-                    fontWeight: isSelected ? '800' : '700',
-                  }}
-                >
-                  {arena.name}
-                </Text>
-              </TouchableOpacity>
-
-              {arenaIndex < ARENAS.length - 1 && (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    marginHorizontal: 4,
-                    width: 138,
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  {Array.from({ length: SEGMENTS_PER_ARENA }).map((_, segmentIndex) => {
-                    const segmentFilled =
-                      arena.id < currentArena ||
-                      (arena.id === currentArena && segmentIndex < filledSegments);
-
-                    const segmentActive =
-                      arena.id === currentArena && segmentIndex === filledSegments;
-
-                    return (
-                      <View
-                        key={`${arena.id}-${segmentIndex}`}
-                        style={{
-                          width: 18,
-                          height: 6,
-                          borderRadius: 999,
-                          backgroundColor: segmentFilled
-                            ? '#00ff00'
-                            : segmentActive
-                            ? '#6eff6e'
-                            : '#353946',
-                          borderWidth: segmentFilled || segmentActive ? 0 : 1,
-                          borderColor: '#454b59',
-                        }}
-                      />
-                    );
-                  })}
-                </View>
-              )}
-            </View>
-          );
-        })}
-      </View>
-    </ScrollView>
-  );
-}
 
 export default function HomeScreen({
   streak,
@@ -189,17 +23,9 @@ export default function HomeScreen({
   setShowArenaMap,
   todayHearingDone,
   todayCleaningDone,
+  todaySurveyDone,
+  isPro,
 }: Props) {
-  const [selectedArenaId, setSelectedArenaId] = useState(currentArena);
-
-  const selectedArena = useMemo(() => {
-    return ARENAS.find((arena) => arena.id === selectedArenaId) || ARENAS[0];
-  }, [selectedArenaId]);
-
-  const selectedArenaStatus = getArenaStatus(selectedArena.id, currentArena);
-  const selectedArenaDays = getArenaDaysProgress(streak, selectedArena.id);
-  const selectedArenaPercent = (selectedArenaDays / ARENA_DAYS) * 100;
-
   return (
     <View style={{ paddingHorizontal: 18 }}>
       <View style={{ marginBottom: 40 }}>
@@ -214,6 +40,7 @@ export default function HomeScreen({
         >
           WELCOME BACK
         </Text>
+
         <Text
           style={{
             fontSize: 40,
@@ -251,7 +78,7 @@ export default function HomeScreen({
             borderColor: '#00ff00',
           }}
         >
-          <Ionicons name="flame-outline" size={54} color="#00ff00" />
+          <MaterialCommunityIcons name="fire" size={60} color="#ff7a1a" />
         </View>
 
         <Text
@@ -264,6 +91,7 @@ export default function HomeScreen({
         >
           {streak}
         </Text>
+
         <Text
           style={{
             color: '#888',
@@ -275,6 +103,7 @@ export default function HomeScreen({
         >
           {streak === 1 ? 'DAY' : 'DAYS'} IN A ROW
         </Text>
+
         <Text
           style={{
             color: '#00ff00',
@@ -284,7 +113,7 @@ export default function HomeScreen({
             letterSpacing: 1,
           }}
         >
-          TAP FOR TROPHY ROAD
+          TAP FOR ARENAS
         </Text>
       </TouchableOpacity>
 
@@ -298,24 +127,17 @@ export default function HomeScreen({
           borderColor: '#2b4330',
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
-          <Ionicons
-            name="checkmark-done-outline"
-            size={16}
-            color="#00ff00"
-            style={{ marginRight: 8 }}
-          />
-          <Text
-            style={{
-              color: '#00ff00',
-              fontWeight: '900',
-              fontSize: 13,
-              letterSpacing: 1,
-            }}
-          >
-            TODAY'S PROGRESS
-          </Text>
-        </View>
+        <Text
+          style={{
+            color: '#00ff00',
+            fontWeight: '900',
+            fontSize: 13,
+            marginBottom: 14,
+            letterSpacing: 1,
+          }}
+        >
+          TODAY'S PROGRESS
+        </Text>
 
         <View
           style={{
@@ -327,63 +149,85 @@ export default function HomeScreen({
           <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
             Hearing test
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons
-              name={todayHearingDone ? 'checkmark-circle-outline' : 'ellipse-outline'}
-              size={16}
-              color={todayHearingDone ? '#00ff00' : '#888'}
-              style={{ marginRight: 6 }}
-            />
-            <Text
-              style={{
-                color: todayHearingDone ? '#00ff00' : '#888',
-                fontSize: 14,
-                fontWeight: '900',
-              }}
-            >
-              {todayHearingDone ? 'DONE' : 'NOT DONE'}
-            </Text>
-          </View>
+          <Text
+            style={{
+              color: todayHearingDone ? '#00ff00' : '#888',
+              fontSize: 14,
+              fontWeight: '900',
+            }}
+          >
+            {todayHearingDone ? 'DONE ✓' : 'NOT DONE'}
+          </Text>
         </View>
 
         <View
           style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
+            marginBottom: isPro ? 12 : 0,
           }}
         >
           <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
             Cleaning guide
           </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons
-              name={todayCleaningDone ? 'checkmark-circle-outline' : 'ellipse-outline'}
-              size={16}
-              color={todayCleaningDone ? '#00ff00' : '#888'}
-              style={{ marginRight: 6 }}
-            />
-            <Text
-              style={{
-                color: todayCleaningDone ? '#00ff00' : '#888',
-                fontSize: 14,
-                fontWeight: '900',
-              }}
-            >
-              {todayCleaningDone ? 'DONE' : 'NOT DONE'}
-            </Text>
-          </View>
+          <Text
+            style={{
+              color: todayCleaningDone ? '#00ff00' : '#888',
+              fontSize: 14,
+              fontWeight: '900',
+            }}
+          >
+            {todayCleaningDone ? 'DONE ✓' : 'NOT DONE'}
+          </Text>
         </View>
 
-        <Text
-          style={{
-            color: '#6f8574',
-            fontSize: 12,
-            marginTop: 14,
-            lineHeight: 18,
-          }}
-        >
-          Finish both tasks in one day to move 1 day farther down the trophy road.
-        </Text>
+        {isPro ? (
+          <>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
+                Listening check-in
+              </Text>
+              <Text
+                style={{
+                  color: todaySurveyDone ? '#00ff00' : '#888',
+                  fontSize: 14,
+                  fontWeight: '900',
+                }}
+              >
+                {todaySurveyDone ? 'DONE +2' : 'NOT DONE'}
+              </Text>
+            </View>
+
+            <Text
+              style={{
+                color: '#6f8574',
+                fontSize: 12,
+                marginTop: 14,
+                lineHeight: 18,
+              }}
+            >
+              Finish the hearing test and cleaning guide to grow your streak.
+              Complete the daily listening check-in for 2 extra road bars.
+            </Text>
+          </>
+        ) : (
+          <Text
+            style={{
+              color: '#6f8574',
+              fontSize: 12,
+              marginTop: 14,
+              lineHeight: 18,
+            }}
+          >
+            Finish the hearing test and cleaning guide to grow your streak. Pro
+            users also unlock daily listening insights and weekly recap stats.
+          </Text>
+        )}
       </View>
 
       {showArenaMap && (
@@ -391,28 +235,30 @@ export default function HomeScreen({
           style={{
             backgroundColor: '#1a1a2e',
             borderRadius: 20,
-            padding: 20,
+            padding: 24,
             marginBottom: 36,
             borderWidth: 2,
             borderColor: '#00ff00',
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 18 }}>
-            <Ionicons
-              name="map-outline"
-              size={18}
-              color="#00ff00"
-              style={{ marginRight: 8 }}
-            />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <Ionicons name="map-outline" size={18} color="#00ff00" />
             <Text
               style={{
                 fontWeight: '900',
                 color: '#00ff00',
+                marginLeft: 8,
                 fontSize: 16,
                 letterSpacing: 1,
               }}
             >
-              ARENA ROAD
+              ARENA MAP
             </Text>
           </View>
 
@@ -420,8 +266,8 @@ export default function HomeScreen({
             style={{
               backgroundColor: 'rgba(0, 255, 0, 0.05)',
               borderRadius: 16,
-              padding: 16,
-              marginBottom: 18,
+              padding: 18,
+              marginBottom: 20,
               borderLeftWidth: 4,
               borderLeftColor: '#00ff00',
             }}
@@ -431,111 +277,106 @@ export default function HomeScreen({
                 fontWeight: '800',
                 color: '#00ff00',
                 fontSize: 18,
-                marginBottom: 8,
+                marginBottom: 16,
               }}
             >
-              {selectedArena.name}
+              {ARENAS[currentArena - 1]?.name ?? 'Arena 1'}
             </Text>
 
-            <Text
-              style={{
-                color: '#8fb194',
-                fontSize: 13,
-                lineHeight: 20,
-                marginBottom: 14,
-              }}
-            >
-              Arena {selectedArena.id} of {ARENAS.length} • 30 day journey • Reward {selectedArena.reward}
-            </Text>
-
-            <View
-              style={{
-                height: 12,
-                backgroundColor: '#333',
-                borderRadius: 6,
-                overflow: 'hidden',
-                borderWidth: 1,
-                borderColor: '#00ff00',
-                marginBottom: 8,
-              }}
-            >
+            <View style={{ marginBottom: 12 }}>
               <View
                 style={{
-                  width:
-                    selectedArenaStatus === 'completed'
-                      ? '100%'
-                      : selectedArenaStatus === 'active'
-                      ? `${selectedArenaPercent}%`
-                      : '0%',
-                  height: '100%',
-                  backgroundColor: '#00ff00',
+                  height: 12,
+                  backgroundColor: '#333',
+                  borderRadius: 6,
+                  overflow: 'hidden',
+                  borderWidth: 1,
+                  borderColor: '#00ff00',
                 }}
-              />
-            </View>
+              >
+                <View
+                  style={{
+                    width: `${arenaProgress}%`,
+                    height: '100%',
+                    backgroundColor: '#00ff00',
+                  }}
+                />
+              </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <MaterialCommunityIcons
-                name="trophy-outline"
-                size={14}
-                color="#666"
-                style={{ marginRight: 6 }}
-              />
               <Text
                 style={{
                   color: '#666',
+                  marginTop: 10,
                   fontSize: 12,
                   fontWeight: '600',
                 }}
               >
-                {selectedArenaStatus === 'completed'
-                  ? 'Completed'
-                  : selectedArenaStatus === 'active'
-                  ? `${selectedArenaDays} / ${ARENA_DAYS} days`
-                  : 'Locked'}{' '}
-                • Reward: {selectedArena.reward}
+                {arenaProgress.toFixed(0)}% • Reward:{' '}
+                {ARENAS[currentArena - 1]?.reward ?? '🌿'}
               </Text>
             </View>
           </View>
 
-          <ArenaRoad
-            streak={streak}
-            currentArena={currentArena}
-            selectedArenaId={selectedArenaId}
-            onSelectArena={setSelectedArenaId}
-          />
-
-          <Text
+          <View
             style={{
-              color: '#6f8574',
-              fontSize: 12,
-              marginTop: 14,
-              lineHeight: 18,
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              marginBottom: 8,
             }}
           >
-            Tap any arena node to inspect it. Every small segment on the road equals 5 days of progress.
-          </Text>
+            {ARENAS.map((arena) => (
+              <View
+                key={arena.id}
+                style={{
+                  width: '22%',
+                  aspectRatio: 1,
+                  marginBottom: 10,
+                  backgroundColor:
+                    currentArena === arena.id
+                      ? '#00ff00'
+                      : arena.id < currentArena
+                      ? 'rgba(0, 255, 0, 0.2)'
+                      : '#333',
+                  borderRadius: 12,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderWidth: 2,
+                  borderColor: currentArena === arena.id ? '#00ff00' : 'transparent',
+                }}
+              >
+                <Text
+                  style={{
+                    fontWeight: '900',
+                    color:
+                      currentArena === arena.id
+                        ? '#000'
+                        : arena.id < currentArena
+                        ? '#00ff00'
+                        : '#666',
+                    fontSize: 16,
+                  }}
+                >
+                  {arena.id < currentArena ? '✓' : arena.id}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
       )}
 
       <View style={{ marginBottom: 36 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-          <Ionicons
-            name="ribbon-outline"
-            size={18}
-            color="#00ff00"
-            style={{ marginRight: 8 }}
-          />
-          <Text
-            style={{
-              fontSize: 14,
-              fontWeight: '900',
-              color: '#00ff00',
-              letterSpacing: 1,
-            }}
-          >
-            ACHIEVEMENTS
-          </Text>
-        </View>
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: '900',
+            color: '#00ff00',
+            marginBottom: 16,
+            letterSpacing: 1,
+          }}
+        >
+          🏆 ACHIEVEMENTS
+        </Text>
 
         <View
           style={{
@@ -548,14 +389,8 @@ export default function HomeScreen({
             borderStyle: 'dashed',
           }}
         >
-          <Ionicons
-            name="rocket-outline"
-            size={22}
-            color="#666"
-            style={{ marginBottom: 10 }}
-          />
           <Text style={{ color: '#666', fontSize: 14, fontWeight: '600' }}>
-            Coming Soon
+            Coming Soon 🚀
           </Text>
         </View>
       </View>

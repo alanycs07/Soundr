@@ -40,18 +40,47 @@ export type AppUser = {
   redeemedCode?: string | null;
 };
 
+export type ListeningDurationOption =
+  | '< 30 min'
+  | '30–60 min'
+  | '1–2 hours'
+  | '2–4 hours'
+  | '4+ hours';
+
+export type ListeningVolumeOption = 'Low' | 'Medium' | 'Loud' | 'Very loud';
+
+export type ListeningEnvironmentOption =
+  | 'Studying / working'
+  | 'Gym'
+  | 'Commuting'
+  | 'Gaming'
+  | 'Relaxing';
+
+export type EarDiscomfortOption = 'None' | 'Slight' | 'Moderate' | 'Severe';
+
+export type DailyListeningSurvey = {
+  date: string;
+  duration: ListeningDurationOption;
+  volume: ListeningVolumeOption;
+  environment: ListeningEnvironmentOption;
+  discomfort: EarDiscomfortOption;
+};
+
 export type DailyTaskStatus = {
   hearingDone: boolean;
   cleaningDone: boolean;
+  surveyDone: boolean;
   streakAwarded: boolean;
 };
 
 export type AppProgress = {
   streak: number;
+  roadPoints: number;
   totalCleanings: number;
   totalHearingTests: number;
   lastCompletedDate: string | null;
   dailyStatus: Record<string, DailyTaskStatus>;
+  dailySurveys: Record<string, DailyListeningSurvey>;
 };
 
 export const ARENA_DAYS = 30;
@@ -152,8 +181,10 @@ export const TABS: { name: TabName; label: string; icon: string }[] = [
 
 export const DEFAULT_PROGRESS: AppProgress = {
   streak: 0,
+  roadPoints: 0,
   totalCleanings: 0,
   totalHearingTests: 0,
   lastCompletedDate: null,
   dailyStatus: {},
+  dailySurveys: {},
 };
