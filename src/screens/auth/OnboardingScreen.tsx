@@ -250,45 +250,74 @@ export default function OnboardingScreen({ onComplete }: Props) {
     );
   }
 
+  const buttonWidth = 290;
+
   return (
     <View
       style={{
         flex: 1,
         backgroundColor: '#0f0f1e',
-        paddingHorizontal: 22,
+        paddingHorizontal: 24,
         justifyContent: 'center',
+        alignItems: 'center',
       }}
     >
       {stage === 'choice' && (
-        <>
-          <Text
+        <View
+          style={{
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <View
             style={{
-              fontSize: 38,
-              fontWeight: '900',
-              color: '#fff',
-              marginBottom: 10,
+              alignItems: 'center',
+              marginBottom: 48,
+              justifyContent: 'center',
             }}
           >
-            Welcome to Soundr
-          </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text
+                style={{
+                  fontSize: 68,
+                  fontWeight: '900',
+                  color: '#ffffff',
+                  letterSpacing: -1.5,
+                }}
+              >
+                Sound
+              </Text>
+              <Text
+                style={{
+                  fontSize: 68,
+                  fontWeight: '900',
+                  color: '#00ff00',
+                }}
+              >
+                r.
+              </Text>
+            </View>
 
-          <Text
-            style={{
-              color: '#8aa18f',
-              fontSize: 15,
-              lineHeight: 22,
-              marginBottom: 26,
-            }}
-          >
-            Choose how you want to begin.
-          </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: '#00ff00',
+                marginTop: 10,
+                letterSpacing: 2.2,
+                fontWeight: '700',
+              }}
+            >
+              HEARING COMPANION
+            </Text>
+          </View>
 
           <TouchableOpacity
             onPress={continueAsBasic}
             style={{
+              width: buttonWidth,
               backgroundColor: '#1a1a2e',
               borderRadius: 16,
-              paddingVertical: 18,
+              paddingVertical: 17,
               alignItems: 'center',
               marginBottom: 14,
               borderWidth: 1.5,
@@ -297,21 +326,22 @@ export default function OnboardingScreen({ onComplete }: Props) {
           >
             <Text
               style={{
-                color: '#fff',
+                color: '#ffffff',
                 fontWeight: '800',
                 fontSize: 16,
               }}
             >
-              Continue as Basic
+              Create a Basic Account
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={continueAsProPurchase}
             style={{
+              width: buttonWidth,
               backgroundColor: '#00ff00',
               borderRadius: 16,
-              paddingVertical: 18,
+              paddingVertical: 17,
               alignItems: 'center',
               marginBottom: 14,
             }}
@@ -323,16 +353,17 @@ export default function OnboardingScreen({ onComplete }: Props) {
                 fontSize: 16,
               }}
             >
-              Purchase Pro Mode
+              Purchase a Pro Account
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setStage('code')}
             style={{
+              width: buttonWidth,
               backgroundColor: '#1a1a2e',
               borderRadius: 16,
-              paddingVertical: 18,
+              paddingVertical: 17,
               alignItems: 'center',
               marginBottom: 14,
               borderWidth: 1.5,
@@ -346,358 +377,369 @@ export default function OnboardingScreen({ onComplete }: Props) {
                 fontSize: 16,
               }}
             >
-              Have a kit? Enter code
+              Enter a Kit Code
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={goToLogin}
             style={{
-              paddingVertical: 12,
+              width: buttonWidth,
+              backgroundColor: '#151825',
+              borderRadius: 16,
+              paddingVertical: 17,
               alignItems: 'center',
+              borderWidth: 1.5,
+              borderColor: '#2b4330',
             }}
           >
             <Text
               style={{
                 color: '#8aa18f',
                 fontWeight: '800',
-                fontSize: 15,
+                fontSize: 16,
               }}
             >
-              Log in to existing account
+              Log in to Existing Account
             </Text>
           </TouchableOpacity>
-        </>
+        </View>
       )}
 
       {stage === 'code' && (
-        <>
-          <Text
-            style={{
-              fontSize: 36,
-              fontWeight: '900',
-              color: '#fff',
-              marginBottom: 10,
-            }}
-          >
-            Enter your kit code
-          </Text>
-
-          <Text
-            style={{
-              color: '#8aa18f',
-              fontSize: 15,
-              lineHeight: 22,
-              marginBottom: 24,
-            }}
-          >
-            Type the unique 6 digit code that came with your sanitation kit.
-          </Text>
-
-          <TextInput
-            value={code}
-            onChangeText={(text) => {
-              const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
-              setCode(digitsOnly);
-              setCodeError('');
-            }}
-            keyboardType="number-pad"
-            maxLength={6}
-            placeholder="______"
-            placeholderTextColor="#55705b"
-            style={{
-              backgroundColor: '#1a1a2e',
-              borderRadius: 16,
-              borderWidth: 1.5,
-              borderColor: '#2b4330',
-              color: '#fff',
-              fontSize: 28,
-              fontWeight: '800',
-              textAlign: 'center',
-              letterSpacing: 8,
-              paddingVertical: 18,
-              marginBottom: 12,
-            }}
-          />
-
-          {!!codeError && (
+        <View style={{ width: '100%', alignItems: 'center' }}>
+          <View style={{ width: buttonWidth }}>
             <Text
               style={{
-                color: '#ff7c7c',
-                fontSize: 13,
-                marginBottom: 16,
-                fontWeight: '600',
+                fontSize: 36,
+                fontWeight: '900',
+                color: '#fff',
+                marginBottom: 10,
               }}
             >
-              {codeError}
+              Enter your kit code
             </Text>
-          )}
 
-          <TouchableOpacity
-            onPress={async () => {
-              if (isCheckingCode) return;
-              setIsCheckingCode(true);
-              await submitCode();
-              setIsCheckingCode(false);
-            }}
-            style={{
-              backgroundColor: '#00ff00',
-              borderRadius: 16,
-              paddingVertical: 18,
-              alignItems: 'center',
-              marginBottom: 14,
-            }}
-          >
-            {isCheckingCode ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <Text
-                style={{
-                  color: '#000',
-                  fontWeight: '900',
-                  fontSize: 16,
-                }}
-              >
-                Redeem Code
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setStage('choice')}
-            style={{
-              paddingVertical: 12,
-              alignItems: 'center',
-            }}
-          >
             <Text
               style={{
                 color: '#8aa18f',
-                fontWeight: '700',
+                fontSize: 15,
+                lineHeight: 22,
+                marginBottom: 24,
               }}
             >
-              ← Back
+              Type the unique 6 digit code that came with your sanitation kit.
             </Text>
-          </TouchableOpacity>
-        </>
+
+            <TextInput
+              value={code}
+              onChangeText={(text) => {
+                const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
+                setCode(digitsOnly);
+                setCodeError('');
+              }}
+              keyboardType="number-pad"
+              maxLength={6}
+              placeholder="______"
+              placeholderTextColor="#55705b"
+              style={{
+                backgroundColor: '#1a1a2e',
+                borderRadius: 16,
+                borderWidth: 1.5,
+                borderColor: '#2b4330',
+                color: '#fff',
+                fontSize: 28,
+                fontWeight: '800',
+                textAlign: 'center',
+                letterSpacing: 8,
+                paddingVertical: 18,
+                marginBottom: 12,
+              }}
+            />
+
+            {!!codeError && (
+              <Text
+                style={{
+                  color: '#ff7c7c',
+                  fontSize: 13,
+                  marginBottom: 16,
+                  fontWeight: '600',
+                }}
+              >
+                {codeError}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              onPress={async () => {
+                if (isCheckingCode) return;
+                setIsCheckingCode(true);
+                await submitCode();
+                setIsCheckingCode(false);
+              }}
+              style={{
+                backgroundColor: '#00ff00',
+                borderRadius: 16,
+                paddingVertical: 18,
+                alignItems: 'center',
+                marginBottom: 14,
+              }}
+            >
+              {isCheckingCode ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text
+                  style={{
+                    color: '#000',
+                    fontWeight: '900',
+                    fontSize: 16,
+                  }}
+                >
+                  Redeem Code
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setStage('choice')}
+              style={{
+                paddingVertical: 12,
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#8aa18f',
+                  fontWeight: '700',
+                }}
+              >
+                ← Back
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
 
       {stage === 'username' && (
-        <>
-          <Text
-            style={{
-              fontSize: 36,
-              fontWeight: '900',
-              color: '#fff',
-              marginBottom: 10,
-            }}
-          >
-            What should we call you?
-          </Text>
-
-          <Text
-            style={{
-              color: '#8aa18f',
-              fontSize: 15,
-              lineHeight: 22,
-              marginBottom: 22,
-            }}
-          >
-            Pick a username. You can edit it later in your profile.
-          </Text>
-
-          <TextInput
-            value={username}
-            onChangeText={(text) => {
-              setUsername(text);
-              setUsernameError('');
-            }}
-            placeholder="Enter your username"
-            placeholderTextColor="#55705b"
-            autoCapitalize="none"
-            style={{
-              backgroundColor: '#1a1a2e',
-              borderRadius: 16,
-              borderWidth: 1.5,
-              borderColor: '#2b4330',
-              color: '#fff',
-              fontSize: 16,
-              fontWeight: '600',
-              paddingHorizontal: 16,
-              paddingVertical: 18,
-              marginBottom: 12,
-            }}
-          />
-
-          {!!usernameError && (
+        <View style={{ width: '100%', alignItems: 'center' }}>
+          <View style={{ width: buttonWidth }}>
             <Text
               style={{
-                color: '#ff7c7c',
-                fontSize: 13,
-                marginBottom: 16,
-                fontWeight: '600',
+                fontSize: 36,
+                fontWeight: '900',
+                color: '#fff',
+                marginBottom: 10,
               }}
             >
-              {usernameError}
+              What should we call you?
             </Text>
-          )}
 
-          <TouchableOpacity
-            onPress={async () => {
-              if (isCheckingUsername) return;
-              setIsCheckingUsername(true);
-              await finishProfile();
-              setIsCheckingUsername(false);
-            }}
-            style={{
-              backgroundColor: '#00ff00',
-              borderRadius: 16,
-              paddingVertical: 18,
-              alignItems: 'center',
-              marginBottom: 12,
-            }}
-          >
-            {isCheckingUsername ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <Text
-                style={{
-                  color: '#000',
-                  fontWeight: '900',
-                  fontSize: 16,
-                }}
-              >
-                Continue
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setStage('choice')}
-            style={{
-              paddingVertical: 10,
-              alignItems: 'center',
-            }}
-          >
             <Text
               style={{
                 color: '#8aa18f',
-                fontWeight: '700',
+                fontSize: 15,
+                lineHeight: 22,
+                marginBottom: 22,
               }}
             >
-              ← Back
+              Pick a username. You can edit it later in your profile.
             </Text>
-          </TouchableOpacity>
-        </>
+
+            <TextInput
+              value={username}
+              onChangeText={(text) => {
+                setUsername(text);
+                setUsernameError('');
+              }}
+              placeholder="Enter your username"
+              placeholderTextColor="#55705b"
+              autoCapitalize="none"
+              style={{
+                backgroundColor: '#1a1a2e',
+                borderRadius: 16,
+                borderWidth: 1.5,
+                borderColor: '#2b4330',
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: '600',
+                paddingHorizontal: 16,
+                paddingVertical: 18,
+                marginBottom: 12,
+              }}
+            />
+
+            {!!usernameError && (
+              <Text
+                style={{
+                  color: '#ff7c7c',
+                  fontSize: 13,
+                  marginBottom: 16,
+                  fontWeight: '600',
+                }}
+              >
+                {usernameError}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              onPress={async () => {
+                if (isCheckingUsername) return;
+                setIsCheckingUsername(true);
+                await finishProfile();
+                setIsCheckingUsername(false);
+              }}
+              style={{
+                backgroundColor: '#00ff00',
+                borderRadius: 16,
+                paddingVertical: 18,
+                alignItems: 'center',
+                marginBottom: 12,
+              }}
+            >
+              {isCheckingUsername ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text
+                  style={{
+                    color: '#000',
+                    fontWeight: '900',
+                    fontSize: 16,
+                  }}
+                >
+                  Continue
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setStage('choice')}
+              style={{
+                paddingVertical: 10,
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#8aa18f',
+                  fontWeight: '700',
+                }}
+              >
+                ← Back
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
 
       {stage === 'login' && (
-        <>
-          <Text
-            style={{
-              fontSize: 36,
-              fontWeight: '900',
-              color: '#fff',
-              marginBottom: 10,
-            }}
-          >
-            Log in
-          </Text>
-
-          <Text
-            style={{
-              color: '#8aa18f',
-              fontSize: 15,
-              lineHeight: 22,
-              marginBottom: 22,
-            }}
-          >
-            Enter your existing username to continue where you left off.
-          </Text>
-
-          <TextInput
-            value={loginUsername}
-            onChangeText={(text) => {
-              setLoginUsername(text);
-              setLoginError('');
-            }}
-            placeholder="Enter your username"
-            placeholderTextColor="#55705b"
-            autoCapitalize="none"
-            style={{
-              backgroundColor: '#1a1a2e',
-              borderRadius: 16,
-              borderWidth: 1.5,
-              borderColor: '#2b4330',
-              color: '#fff',
-              fontSize: 16,
-              fontWeight: '600',
-              paddingHorizontal: 16,
-              paddingVertical: 18,
-              marginBottom: 12,
-            }}
-          />
-
-          {!!loginError && (
+        <View style={{ width: '100%', alignItems: 'center' }}>
+          <View style={{ width: buttonWidth }}>
             <Text
               style={{
-                color: '#ff7c7c',
-                fontSize: 13,
-                marginBottom: 16,
-                fontWeight: '600',
+                fontSize: 36,
+                fontWeight: '900',
+                color: '#fff',
+                marginBottom: 10,
               }}
             >
-              {loginError}
+              Log in
             </Text>
-          )}
 
-          <TouchableOpacity
-            onPress={async () => {
-              if (isLoggingIn) return;
-              setIsLoggingIn(true);
-              await handleLogin();
-              setIsLoggingIn(false);
-            }}
-            style={{
-              backgroundColor: '#00ff00',
-              borderRadius: 16,
-              paddingVertical: 18,
-              alignItems: 'center',
-              marginBottom: 12,
-            }}
-          >
-            {isLoggingIn ? (
-              <ActivityIndicator color="#000" />
-            ) : (
-              <Text
-                style={{
-                  color: '#000',
-                  fontWeight: '900',
-                  fontSize: 16,
-                }}
-              >
-                Log in to account
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setStage('choice')}
-            style={{
-              paddingVertical: 10,
-              alignItems: 'center',
-            }}
-          >
             <Text
               style={{
                 color: '#8aa18f',
-                fontWeight: '700',
+                fontSize: 15,
+                lineHeight: 22,
+                marginBottom: 22,
               }}
             >
-              ← Back
+              Enter your existing username to continue where you left off.
             </Text>
-          </TouchableOpacity>
-        </>
+
+            <TextInput
+              value={loginUsername}
+              onChangeText={(text) => {
+                setLoginUsername(text);
+                setLoginError('');
+              }}
+              placeholder="Enter your username"
+              placeholderTextColor="#55705b"
+              autoCapitalize="none"
+              style={{
+                backgroundColor: '#1a1a2e',
+                borderRadius: 16,
+                borderWidth: 1.5,
+                borderColor: '#2b4330',
+                color: '#fff',
+                fontSize: 16,
+                fontWeight: '600',
+                paddingHorizontal: 16,
+                paddingVertical: 18,
+                marginBottom: 12,
+              }}
+            />
+
+            {!!loginError && (
+              <Text
+                style={{
+                  color: '#ff7c7c',
+                  fontSize: 13,
+                  marginBottom: 16,
+                  fontWeight: '600',
+                }}
+              >
+                {loginError}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              onPress={async () => {
+                if (isLoggingIn) return;
+                setIsLoggingIn(true);
+                await handleLogin();
+                setIsLoggingIn(false);
+              }}
+              style={{
+                backgroundColor: '#00ff00',
+                borderRadius: 16,
+                paddingVertical: 18,
+                alignItems: 'center',
+                marginBottom: 12,
+              }}
+            >
+              {isLoggingIn ? (
+                <ActivityIndicator color="#000" />
+              ) : (
+                <Text
+                  style={{
+                    color: '#000',
+                    fontWeight: '900',
+                    fontSize: 16,
+                  }}
+                >
+                  Log in to account
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setStage('choice')}
+              style={{
+                paddingVertical: 10,
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: '#8aa18f',
+                  fontWeight: '700',
+                }}
+              >
+                ← Back
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       )}
     </View>
   );
