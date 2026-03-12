@@ -47,17 +47,21 @@ export type AppProgress = {
   dailyStatus: Record<string, DailyTaskStatus>;
 };
 
+export const ARENA_DAYS = 30;
+
 export const ARENAS: Arena[] = [
-  { id: 1, name: 'Arena 1', days: 30, reward: '🎖️' },
-  { id: 2, name: 'Arena 2', days: 35, reward: '🏅' },
-  { id: 3, name: 'Arena 3', days: 40, reward: '💎' },
-  { id: 4, name: 'Arena 4', days: 45, reward: '👑' },
-  { id: 5, name: 'Arena 5', days: 50, reward: '⭐' },
-  { id: 6, name: 'Arena 6', days: 55, reward: '🔥' },
-  { id: 7, name: 'Arena 7', days: 60, reward: '🌟' },
-  { id: 8, name: 'Arena 8', days: 65, reward: '🏆' },
-  { id: 9, name: 'Arena 9', days: 70, reward: '🎯' },
-  { id: 10, name: 'Arena 10', days: 75, reward: '👑' },
+  { id: 1, name: 'Mossgate Hollow', days: ARENA_DAYS, reward: '🌿' },
+  { id: 2, name: 'Echo Ridge', days: ARENA_DAYS, reward: '🔊' },
+  { id: 3, name: 'Quartz Basin', days: ARENA_DAYS, reward: '💎' },
+  { id: 4, name: 'Volt Run', days: ARENA_DAYS, reward: '⚡' },
+  { id: 5, name: 'Cinder Vault', days: ARENA_DAYS, reward: '🔥' },
+  { id: 6, name: 'Glacier Veil', days: ARENA_DAYS, reward: '❄️' },
+  { id: 7, name: 'Aurora Crossing', days: ARENA_DAYS, reward: '🌌' },
+  { id: 8, name: 'Obsidian Reach', days: ARENA_DAYS, reward: '🖤' },
+  { id: 9, name: 'Suncoil Dunes', days: ARENA_DAYS, reward: '☀️' },
+  { id: 10, name: 'Lumen Harbor', days: ARENA_DAYS, reward: '💡' },
+  { id: 11, name: 'Titan Grove', days: ARENA_DAYS, reward: '🏛️' },
+  { id: 12, name: 'Celestine Crown', days: ARENA_DAYS, reward: '👑' },
 ];
 
 export const FREQUENCIES: Frequency[] = [
@@ -131,11 +135,11 @@ export const CLEANING_CARDS: CleaningCard[] = [
 ];
 
 export const TABS: { name: TabName; label: string; icon: string }[] = [
-  { name: 'home', label: 'HOME', icon: '🏠' },
-  { name: 'hearing', label: 'TEST', icon: '🎧' },
-  { name: 'cleaning', label: 'CLEAN', icon: '🧼' },
-  { name: 'account', label: 'PROFILE', icon: '👤' },
-  { name: 'plans', label: 'PLANS', icon: '💎' },
+  { name: 'home', label: 'HOME', icon: 'home' },
+  { name: 'hearing', label: 'TEST', icon: 'headset' },
+  { name: 'cleaning', label: 'CLEAN', icon: 'spray' },
+  { name: 'account', label: 'PROFILE', icon: 'person' },
+  { name: 'plans', label: 'PLANS', icon: 'diamond' },
 ];
 
 export const DEFAULT_PROGRESS: AppProgress = {

@@ -8,6 +8,8 @@ import HomeScreen from './screens/main/HomeScreen';
 import PlansScreen from './screens/main/PlansScreen';
 import SettingsScreen from './screens/main/SettingsScreen';
 import {
+  ARENA_DAYS,
+  ARENAS,
   AppProgress,
   AppUser,
   DEFAULT_PROGRESS,
@@ -37,8 +39,10 @@ function getYesterdayKey() {
 }
 
 function deriveArenaFromStreak(streak: number) {
-  const currentArena = Math.min(Math.floor(streak / 5) + 1, 10);
-  const arenaProgress = (streak % 5) * 20;
+  const arenaCount = ARENAS.length;
+  const currentArena = Math.min(Math.floor(streak / ARENA_DAYS) + 1, arenaCount);
+  const arenaProgress = ((streak % ARENA_DAYS) / ARENA_DAYS) * 100;
+
   return { currentArena, arenaProgress };
 }
 
