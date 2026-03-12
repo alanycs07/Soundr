@@ -7,11 +7,6 @@ const REDEEMED_CODES_KEY = 'soundr_redeemed_codes';
 const USERNAME_LIST_KEY = 'soundr_usernames';
 const PROGRESS_MAP_KEY = 'soundr_progress_map';
 
-/*
-  Demo-only prototype codes.
-  For real production use, do not store valid codes in the app.
-  Put them in a backend database and verify server-side.
-*/
 const DEMO_VALID_CODES = ['184203', '582114', '761905', '330821', '924617'];
 
 function normalizeUsername(username: string) {
@@ -41,8 +36,8 @@ async function saveProgressMap(progressMap: ProgressMap) {
 
 export async function saveUser(user: AppUser) {
   const normalized = normalizeUsername(user.username);
-
   const userMap = await getUserMap();
+
   userMap[normalized] = user;
 
   await registerUsername(user.username);
@@ -56,6 +51,34 @@ export async function getUser(): Promise<AppUser | null> {
 
   const userMap = await getUserMap();
   return userMap[currentUserId] || null;
+}
+
+export async function getUserByUsername(username: string): Promise<AppUser | null> {
+  const normalized = normalizeUsername(username);
+  const userMap = await getUserMap();
+  return userMap[normalized] || null;
+}
+
+export async function loginExistingUser(username: string): Promise<{
+  success: boolean;
+  user?: AppUser;
+  reason?: string;
+}> {
+  const normalized = normalizeUsername(username);
+
+  if (!normalized) {
+    return { success: false, reason: 'Please enter a username.' };
+  }
+
+  const userMap = await getUserMap();
+  const existingUser = userMap[normalized];
+
+  if (!existingUser) {
+    return { success: false, reason: 'No account found with that username.' };
+  }
+
+  await AsyncStorage.setItem(CURRENT_USER_KEY, normalized);
+  return { success: true, user: existingUser };
 }
 
 export async function clearUser() {
@@ -119,10 +142,7 @@ export async function registerUsername(username: string) {
   }
 }
 
-export async function updateStoredUsername(
-  oldUsername: string,
-  newUsername: string
-) {
+export async function updateStoredUsername(oldUsername: string, newUsername: string) {
   const oldNormalized = normalizeUsername(oldUsername);
   const newNormalized = normalizeUsername(newUsername);
 
@@ -162,10 +182,7 @@ export async function updateStoredUsername(
   }
 }
 
-export async function saveProgress(
-  username: string,
-  progress: AppProgress
-): Promise<void> {
+export async function saveProgress(username: string, progress: AppProgress): Promise<void> {
   const normalized = normalizeUsername(username);
   const progressMap = await getProgressMap();
   progressMap[normalized] = progress;

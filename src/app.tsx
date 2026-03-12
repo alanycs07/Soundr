@@ -394,12 +394,44 @@ export default function App() {
     setCurrentTab('home');
   };
 
-  const handleOnboardingComplete = async (newUser: AppUser) => {
-    setUser(newUser);
-    setProgress(DEFAULT_PROGRESS);
+  const handleOnboardingComplete = async (
+    incomingUser: AppUser,
+    options?: { isLogin?: boolean }
+  ) => {
+    if (options?.isLogin) {
+      const loadedProgress = await getProgress(incomingUser.username);
+      setUser(incomingUser);
+      setProgress(loadedProgress);
+      setCurrentTab('home');
+      setShowArenaMap(false);
+      setCleaningStep(0);
+      setTestComplete(false);
+      setHearingResponses({});
+      setSelectedFrequency(FREQUENCIES[0].hz);
+      setCurrentEar('left');
+      setHearingScore(0);
+      setHearingPercentile(0);
+      setHearingRank('');
+      return;
+    }
+
+    await saveUser(incomingUser);
+
+    const existingProgress = await getProgress(incomingUser.username);
+    await saveProgress(incomingUser.username, existingProgress);
+
+    setUser(incomingUser);
+    setProgress(existingProgress);
     setCurrentTab('home');
-    await saveUser(newUser);
-    await saveProgress(newUser.username, DEFAULT_PROGRESS);
+    setShowArenaMap(false);
+    setCleaningStep(0);
+    setTestComplete(false);
+    setHearingResponses({});
+    setSelectedFrequency(FREQUENCIES[0].hz);
+    setCurrentEar('left');
+    setHearingScore(0);
+    setHearingPercentile(0);
+    setHearingRank('');
   };
 
   const saveUsername = async (
