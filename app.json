@@ -1,19 +1,23 @@
 {
   "expo": {
-    "name": "EarHealth",
-    "slug": "earhealth",
+    "name": "Soundr",
+    "slug": "Soundr",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "earhealth",
+    "scheme": "Soundr",
     "userInterfaceStyle": "automatic",
     "assetBundlePatterns": ["**/*"],
     "entryPoint": "./index.js",
     "ios": {
       "supportsTabletMode": true,
-      "bundleIdentifier": "com.earhealth.app"
+      "bundleIdentifier": "com.soundr.app"
     },
     "android": {
-      "package": "com.earhealth.app"
+      "package": "com.soundr.app"
+    },
+    "web": {
+      "name": "Soundr",
+      "shortName": "Soundr"
     }
   }
 }
