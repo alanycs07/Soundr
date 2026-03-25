@@ -1,7 +1,7 @@
 {
-  "name": "earhealth",
+  "name": "Soundr",
   "version": "1.0.0",
-  "description": "EarHealth - Complete earbud cleaning and hearing health app",
+  "description": "Soundr - Complete earbud cleaning and hearing health app",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
