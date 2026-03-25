@@ -32,6 +32,28 @@ export async function saveUser(user: AppUser) {
   await AsyncStorage.setItem(getUserStorageKey(user.username), JSON.stringify(user));
 }
 
+/**
+ * Checks if a user exists and if the password matches.
+ */
+export async function verifyLogin(username: string, passwordAttempt: string): Promise<{
+  success: boolean;
+  user?: AppUser;
+  reason?: string;
+}> {
+  const user = await getStoredUserByUsername(username);
+  
+  if (!user) {
+    return { success: false, reason: 'No account found with that username.' };
+  }
+
+  // Check password (simplified for this implementation)
+  if (user.password !== passwordAttempt) {
+    return { success: false, reason: 'Incorrect password.' };
+  }
+
+  return { success: true, user };
+}
+
 export async function getUser(): Promise<AppUser | null> {
   const raw = await AsyncStorage.getItem(CURRENT_USER_KEY);
   return raw ? JSON.parse(raw) : null;
@@ -60,9 +82,6 @@ export async function getRedeemedCodes(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 
-/**
- * Validates if a code is 6 digits, exists in the master list, and hasn't been used on this device.
- */
 export async function redeemKitCode(code: string): Promise<{
   success: boolean;
   reason?: string;
@@ -86,9 +105,6 @@ export async function redeemKitCode(code: string): Promise<{
   return { success: true };
 }
 
-/**
- * Permanently marks a code as used in the local device storage.
- */
 export async function confirmCodeRedemption(code: string) {
   const redeemed = await getRedeemedCodes();
   const normalized = code.trim();

@@ -36,6 +36,7 @@ export type UserMode = 'basic' | 'pro';
 
 export type AppUser = {
   username: string;
+  password?: string; // Added for security
   mode: UserMode;
   redeemedCode?: string | null;
 };
