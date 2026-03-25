@@ -12,6 +12,7 @@ import {
   getStoredUserByUsername,
   isUsernameTaken,
   redeemKitCode,
+  confirmCodeRedemption,
 } from '../../store/userStorage';
 
 type AuthStage = 'splash' | 'choice' | 'code' | 'username' | 'login';
@@ -89,7 +90,6 @@ export default function OnboardingScreen({ onComplete }: Props) {
 
   const submitCode = async () => {
     setCodeError('');
-
     const result = await redeemKitCode(code);
 
     if (!result.success) {
@@ -124,6 +124,11 @@ export default function OnboardingScreen({ onComplete }: Props) {
     if (taken) {
       setUsernameError('That username is already taken. Try logging in instead.');
       return;
+    }
+
+    // LOCK THE CODE: Permanently mark it as used on this device
+    if (pendingMode === 'pro' && code) {
+      await confirmCodeRedemption(code);
     }
 
     onComplete({

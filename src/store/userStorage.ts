@@ -5,7 +5,18 @@ const CURRENT_USER_KEY = 'soundr_current_user';
 const REDEEMED_CODES_KEY = 'soundr_redeemed_codes';
 const USERNAME_LIST_KEY = 'soundr_usernames';
 
-const DEMO_VALID_CODES = ['184203', '582114', '761905', '330821', '924617'];
+const DEMO_VALID_CODES = [
+  '717425', '357967', '271146', '570241', '230269', 
+  '272884', '409034', '671973', '330506', '173538', 
+  '422027', '192993', '762391', '687676', '123600', 
+  '550331', '482134', '947580', '747396', '873835', 
+  '590843', '897091', '926277', '201464', '953055', 
+  '769783', '179430', '458094', '670488', '668057', 
+  '932081', '298360', '706934', '872775', '209962', 
+  '950689', '719268', '680008', '664578', '305826', 
+  '571596', '232880', '952624', '637176', '300415', 
+  '265709', '172192', '921017', '862178', '471198'
+];
 
 function getUserStorageKey(username: string) {
   return `soundr_user_${username.trim().toLowerCase()}`;
@@ -49,6 +60,9 @@ export async function getRedeemedCodes(): Promise<string[]> {
   return raw ? JSON.parse(raw) : [];
 }
 
+/**
+ * Validates if a code is 6 digits, exists in the master list, and hasn't been used on this device.
+ */
 export async function redeemKitCode(code: string): Promise<{
   success: boolean;
   reason?: string;
@@ -66,13 +80,22 @@ export async function redeemKitCode(code: string): Promise<{
   const redeemed = await getRedeemedCodes();
 
   if (redeemed.includes(normalized)) {
-    return { success: false, reason: 'This code has already been used.' };
+    return { success: false, reason: 'This code has already been used on this device.' };
   }
 
-  redeemed.push(normalized);
-  await AsyncStorage.setItem(REDEEMED_CODES_KEY, JSON.stringify(redeemed));
-
   return { success: true };
+}
+
+/**
+ * Permanently marks a code as used in the local device storage.
+ */
+export async function confirmCodeRedemption(code: string) {
+  const redeemed = await getRedeemedCodes();
+  const normalized = code.trim();
+  if (!redeemed.includes(normalized)) {
+    redeemed.push(normalized);
+    await AsyncStorage.setItem(REDEEMED_CODES_KEY, JSON.stringify(redeemed));
+  }
 }
 
 export async function getAllUsernames(): Promise<string[]> {
@@ -128,8 +151,4 @@ export async function updateStoredUsername(oldUsername: string, newUsername: str
   }
 
   await AsyncStorage.setItem(USERNAME_LIST_KEY, JSON.stringify(filtered));
-}
-
-export function generateRandomSixDigitCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
 }
