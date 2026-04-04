@@ -17,6 +17,7 @@ import {
   AppUser,
   DEFAULT_PROGRESS,
   FREQUENCIES,
+  HearingEntry,
   HearingResponse,
   TABS,
   TabName,
@@ -158,50 +159,38 @@ export default function App() {
 
   const playSound = () => {
     if (isPlayingSound) return;
-
     try {
-      // Reuse or create AudioContext (browsers block creating many)
       if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
         audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
       const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
 
-      // Resume context if suspended (browser autoplay policy)
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
+      const duration = 1.5;
+      const fadeTime = 0.05;
 
-      const duration = 1.5; // seconds
-      const fadeTime = 0.05; // short fade in/out to avoid clicks
-
-      // Oscillator — generates the pure tone at the selected frequency
       const oscillator = ctx.createOscillator();
       oscillator.type = 'sine';
       oscillator.frequency.setValueAtTime(selectedFrequency, ctx.currentTime);
 
-      // Gain node — controls volume envelope
       const gainNode = ctx.createGain();
       gainNode.gain.setValueAtTime(0, ctx.currentTime);
       gainNode.gain.linearRampToValueAtTime(0.4, ctx.currentTime + fadeTime);
       gainNode.gain.setValueAtTime(0.4, ctx.currentTime + duration - fadeTime);
       gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
 
-      // Stereo panner — routes tone to left or right ear
       const panner = ctx.createStereoPanner();
       panner.pan.setValueAtTime(currentEar === 'left' ? -1 : 1, ctx.currentTime);
 
-      // Connect the audio graph
       oscillator.connect(gainNode);
       gainNode.connect(panner);
       panner.connect(ctx.destination);
 
       oscillator.start(ctx.currentTime);
       oscillator.stop(ctx.currentTime + duration);
-
       setIsPlayingSound(true);
       oscillator.onended = () => setIsPlayingSound(false);
     } catch (e) {
-      // Fallback: if Web Audio API isn't available just toggle the state
       console.warn('Web Audio API not available:', e);
       setIsPlayingSound(true);
       setTimeout(() => setIsPlayingSound(false), 1500);
@@ -355,15 +344,46 @@ export default function App() {
     const score = Math.round((weightedEarned / weightedTotal) * 100);
     const percentile = Math.round((weightedEarned / weightedTotal) * 100);
 
+    const rank =
+      score >= 92 ? 'Exceptional Range' :
+      score >= 82 ? 'Very Strong' :
+      score >= 70 ? 'Above Average' :
+      score >= 55 ? 'Moderate Range' :
+      score >= 40 ? 'Limited High-End Range' :
+      'Needs Improvement';
+
     setHearingScore(score);
     setHearingPercentile(percentile);
+    setHearingRank(rank);
 
-    if (score >= 92) setHearingRank('Exceptional Range');
-    else if (score >= 82) setHearingRank('Very Strong');
-    else if (score >= 70) setHearingRank('Above Average');
-    else if (score >= 55) setHearingRank('Moderate Range');
-    else if (score >= 40) setHearingRank('Limited High-End Range');
-    else setHearingRank('Needs Improvement');
+    // Build per-frequency result map for history
+    const frequencyResults: Record<number, number> = {};
+    FREQUENCIES.forEach((freq) => {
+      const response = updatedResponses[freq.hz];
+      const heardCount = (response?.left ? 1 : 0) + (response?.right ? 1 : 0);
+      frequencyResults[freq.hz] = (heardCount / 2) * 100;
+    });
+
+    // Save entry to hearing history
+    const entry: HearingEntry = {
+      date: getTodayKey(),
+      score,
+      percentile,
+      rank,
+      frequencyResults,
+    };
+
+    if (user) {
+      const current = await getProgress(user.username);
+      // Replace any existing entry for today to prevent duplicate same-day saves
+      const filtered = (current.hearingHistory || []).filter((e) => e.date !== getTodayKey());
+      const nextProgress = {
+        ...current,
+        hearingHistory: [...filtered, entry],
+      };
+      await saveProgress(user.username, nextProgress);
+      setProgress(nextProgress);
+    }
 
     setTestComplete(true);
     animateResults();
@@ -573,6 +593,7 @@ export default function App() {
             summaryFade={summaryFade}
             summaryRise={summaryRise}
             statBars={statBars}
+            hearingHistory={progress.hearingHistory || []}
             playSound={playSound}
             handleHearingResponse={handleHearingResponse}
             resetHearingTest={resetHearingTest}

@@ -36,7 +36,7 @@ export type UserMode = 'basic' | 'pro';
 
 export type AppUser = {
   username: string;
-  password?: string; // Added for security
+  password?: string;
   mode: UserMode;
   redeemedCode?: string | null;
 };
@@ -47,12 +47,23 @@ export type DailyTaskStatus = {
   streakAwarded: boolean;
 };
 
+// One saved hearing test result
+export type HearingEntry = {
+  date: string;        // ISO date string e.g. "2026-04-04"
+  score: number;       // 0–100
+  percentile: number;  // 0–100
+  rank: string;        // e.g. "Exceptional Range"
+  // Per-frequency results for detailed breakdown over time
+  frequencyResults: Record<number, number>; // hz -> percentage (0, 50, or 100)
+};
+
 export type AppProgress = {
   streak: number;
   totalCleanings: number;
   totalHearingTests: number;
   lastCompletedDate: string | null;
   dailyStatus: Record<string, DailyTaskStatus>;
+  hearingHistory: HearingEntry[]; // ordered oldest → newest
 };
 
 export const ARENA_DAYS = 30;
@@ -73,19 +84,35 @@ export const ARENAS: Arena[] = [
 ];
 
 export const FREQUENCIES: Frequency[] = [
-  { hz: 125, label: 'Sub Bass', weight: 1.0 },
-  { hz: 250, label: 'Bass', weight: 1.0 },
-  { hz: 500, label: 'Low Mid', weight: 1.0 },
-  { hz: 1000, label: 'Mid', weight: 1.0 },
-  { hz: 2000, label: 'Upper Mid', weight: 1.1 },
-  { hz: 4000, label: 'Presence', weight: 1.2 },
-  { hz: 8000, label: 'Treble', weight: 1.4 },
-  { hz: 12000, label: 'Air', weight: 1.8 },
-  { hz: 14000, label: 'High Air', weight: 2.0 },
-  { hz: 16000, label: 'Extreme', weight: 2.4 },
+  { hz: 125,   label: 'Sub Bass',     weight: 1.0 },
+  { hz: 250,   label: 'Bass',         weight: 1.0 },
+  { hz: 500,   label: 'Low Mid',      weight: 1.0 },
+  { hz: 1000,  label: 'Mid',          weight: 1.0 },
+  { hz: 2000,  label: 'Upper Mid',    weight: 1.1 },
+  { hz: 4000,  label: 'Presence',     weight: 1.2 },
+  { hz: 8000,  label: 'Treble',       weight: 1.4 },
+  { hz: 12000, label: 'Air',          weight: 1.8 },
+  { hz: 14000, label: 'High Air',     weight: 2.0 },
+  { hz: 16000, label: 'Extreme',      weight: 2.4 },
   { hz: 17000, label: 'Very Extreme', weight: 2.7 },
-  { hz: 18000, label: 'Elite High', weight: 3.0 },
+  { hz: 18000, label: 'Elite High',   weight: 3.0 },
 ];
+
+// Educational callouts shown per frequency on results screen
+export const FREQUENCY_INSIGHTS: Record<number, string> = {
+  125:   'Sub-bass tones are felt more than heard. Loss here is rare.',
+  250:   'Bass frequencies carry warmth in music and speech fundamentals.',
+  500:   'Low-mid range is key for vowel sounds in speech clarity.',
+  1000:  'Mid-range is where human speech is most concentrated.',
+  2000:  'Upper-mid loss often makes speech sound muffled or distant.',
+  4000:  'Presence range is critical for consonants like s, f, and t.',
+  8000:  'Treble frequencies add crispness and air to music.',
+  12000: 'This range is often the first affected by noise exposure.',
+  14000: 'High-air frequencies are difficult for many adults over 30.',
+  16000: 'Most adults lose sensitivity here by their mid-30s.',
+  17000: 'Fewer than 30% of adults over 25 can detect this range.',
+  18000: 'Elite high — very few adults can hear this without pristine hearing.',
+};
 
 export const EDUCATIONAL_FACTS = [
   'Earwax is protective and helps defend the ear canal.',
@@ -98,24 +125,20 @@ export const EDUCATIONAL_FACTS = [
 export const CLEANING_CARDS: CleaningCard[] = [
   {
     title: 'Ready to clean?',
-    body:
-      'Use your sanitation kit and follow each step in order. Tap begin to start the cleaning flow.',
+    body: 'Use your sanitation kit and follow each step in order. Tap begin to start the cleaning flow.',
     cta: 'Start Cleaning',
   },
   {
     title: 'Open your sanitation kit',
-    body:
-      'You should have a cleaning tool, microfiber cloth, bamboo brush, and isopropyl alcohol cleaning fluid.',
+    body: 'You should have a cleaning tool, microfiber cloth, bamboo brush, and isopropyl alcohol cleaning fluid.',
   },
   {
     title: 'Brush the mesh',
-    body:
-      'Spray the bamboo brush with the alcohol and hold the AirPod with the mesh facing up and brush in circles for about 15 seconds.',
+    body: 'Spray the bamboo brush with the alcohol and hold the AirPod with the mesh facing up and brush in circles for about 15 seconds.',
   },
   {
     title: 'Blot the mesh',
-    body:
-      'Flip the AirPod and blot the mesh on our cloth, ensuring contact. Repeat this process three times total for each mesh.',
+    body: 'Flip the AirPod and blot the mesh on our cloth, ensuring contact. Repeat this process three times total for each mesh.',
   },
   {
     title: 'Clean the charging port',
@@ -123,8 +146,7 @@ export const CLEANING_CARDS: CleaningCard[] = [
   },
   {
     title: 'Remove residue',
-    body:
-      'Rinse the brush with distilled water, then repeat the brushing and blotting steps with distilled water to remove residue.',
+    body: 'Rinse the brush with distilled water, then repeat the brushing and blotting steps with distilled water to remove residue.',
   },
   {
     title: 'Clean the charging case',
@@ -136,19 +158,18 @@ export const CLEANING_CARDS: CleaningCard[] = [
   },
   {
     title: 'Congratulations, you are done!',
-    body:
-      'Let the AirPods dry completely before use. Once everything is fully dry, place them back in the case.',
+    body: 'Let the AirPods dry completely before use. Once everything is fully dry, place them back in the case.',
     cta: 'Finish Cleaning',
   },
 ];
 
 export const TABS: { name: TabName; label: string; icon: string }[] = [
-  { name: 'home', label: 'HOME', icon: 'home' },
-  { name: 'hearing', label: 'TEST', icon: 'headset' },
-  { name: 'cleaning', label: 'CLEAN', icon: 'spray' },
-  { name: 'about', label: 'ABOUT', icon: 'info' },
+  { name: 'home',    label: 'HOME',    icon: 'home' },
+  { name: 'hearing', label: 'TEST',    icon: 'headset' },
+  { name: 'cleaning',label: 'CLEAN',   icon: 'spray' },
+  { name: 'about',   label: 'ABOUT',   icon: 'info' },
   { name: 'account', label: 'PROFILE', icon: 'person' },
-  { name: 'plans', label: 'PLANS', icon: 'diamond' },
+  { name: 'plans',   label: 'PLANS',   icon: 'diamond' },
 ];
 
 export const DEFAULT_PROGRESS: AppProgress = {
@@ -157,4 +178,5 @@ export const DEFAULT_PROGRESS: AppProgress = {
   totalHearingTests: 0,
   lastCompletedDate: null,
   dailyStatus: {},
+  hearingHistory: [],
 };
