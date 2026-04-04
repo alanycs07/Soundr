@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ARENA_DAYS, ARENAS } from '../../store/appStore';
+import HoverButton from '../../components/HoverButton';
 
 type Props = {
   streak: number;

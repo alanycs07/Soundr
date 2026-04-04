@@ -93,6 +93,7 @@ export default function App() {
   const [currentEar, setCurrentEar] = useState<'left' | 'right'>('left');
   const [isPlayingSound, setIsPlayingSound] = useState(false);
   const [hearingResponses, setHearingResponses] = useState<Record<number, HearingResponse>>({});
+  const audioCtxRef = useRef<AudioContext | null>(null);
   const [testComplete, setTestComplete] = useState(false);
   const [hearingScore, setHearingScore] = useState(0);
   const [hearingPercentile, setHearingPercentile] = useState(0);
@@ -156,8 +157,55 @@ export default function App() {
   }, [hearingResponses]);
 
   const playSound = () => {
-    setIsPlayingSound(true);
-    setTimeout(() => setIsPlayingSound(false), 500);
+    if (isPlayingSound) return;
+
+    try {
+      // Reuse or create AudioContext (browsers block creating many)
+      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+
+      // Resume context if suspended (browser autoplay policy)
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const duration = 1.5; // seconds
+      const fadeTime = 0.05; // short fade in/out to avoid clicks
+
+      // Oscillator — generates the pure tone at the selected frequency
+      const oscillator = ctx.createOscillator();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(selectedFrequency, ctx.currentTime);
+
+      // Gain node — controls volume envelope
+      const gainNode = ctx.createGain();
+      gainNode.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.4, ctx.currentTime + fadeTime);
+      gainNode.gain.setValueAtTime(0.4, ctx.currentTime + duration - fadeTime);
+      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+
+      // Stereo panner — routes tone to left or right ear
+      const panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(currentEar === 'left' ? -1 : 1, ctx.currentTime);
+
+      // Connect the audio graph
+      oscillator.connect(gainNode);
+      gainNode.connect(panner);
+      panner.connect(ctx.destination);
+
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + duration);
+
+      setIsPlayingSound(true);
+      oscillator.onended = () => setIsPlayingSound(false);
+    } catch (e) {
+      // Fallback: if Web Audio API isn't available just toggle the state
+      console.warn('Web Audio API not available:', e);
+      setIsPlayingSound(true);
+      setTimeout(() => setIsPlayingSound(false), 1500);
+    }
   };
 
   const animateResults = () => {

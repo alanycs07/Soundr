@@ -6,7 +6,9 @@
     "orientation": "portrait",
     "scheme": "Soundr",
     "userInterfaceStyle": "automatic",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "entryPoint": "./index.js",
     "ios": {
       "supportsTabletMode": true,
@@ -18,6 +20,9 @@
     "web": {
       "name": "Soundr",
       "shortName": "Soundr"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
