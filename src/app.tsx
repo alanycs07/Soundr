@@ -6,6 +6,7 @@ import OnboardingScreen from './screens/auth/OnboardingScreen';
 import AboutScreen from './screens/main/AboutScreen';
 import CleaningScreen from './screens/main/CleaningScreen';
 import HearingTestScreen from './screens/main/HearingTestScreen';
+import LearnScreen from './screens/main/LearnScreen';
 import HomeScreen from './screens/main/HomeScreen';
 import PlansScreen from './screens/main/PlansScreen';
 import SettingsScreen from './screens/main/SettingsScreen';
@@ -69,6 +70,10 @@ function TabIcon({
 
   if (tabName === 'cleaning') {
     return <MaterialCommunityIcons name="spray-bottle" size={size} color={color} />;
+  }
+
+  if (tabName === 'learn') {
+    return <Ionicons name="book-outline" size={size} color={color} />;
   }
 
   if (tabName === 'about') {
@@ -535,6 +540,29 @@ export default function App() {
     return { success: true };
   };
 
+  const handleQuizPass = async () => {
+    if (!user) return;
+    const today = getTodayKey();
+    const current = await getProgress(user.username);
+    const todayEntry = current.dailyStatus[today] || {
+      hearingDone: false,
+      cleaningDone: false,
+      streakAwarded: false,
+      learnQuizDone: false,
+    };
+    if (todayEntry.learnQuizDone) return; // already awarded today
+    const nextProgress: AppProgress = {
+      ...current,
+      learnPoints: (current.learnPoints || 0) + 10,
+      dailyStatus: {
+        ...current.dailyStatus,
+        [today]: { ...todayEntry, learnQuizDone: true },
+      },
+    };
+    setProgress(nextProgress);
+    await saveProgress(user.username, nextProgress);
+  };
+
   const handleLogout = async () => {
     await clearUser();
     setUser(null);
@@ -609,6 +637,14 @@ export default function App() {
             restartCleaning={restartCleaning}
             onFinishCleaning={handleFinishCleaning}
             isPro={user.mode === 'pro'}
+          />
+        )}
+
+        {currentTab === 'learn' && (
+          <LearnScreen
+            quizDoneToday={todayStatus.learnQuizDone ?? false}
+            learnPoints={progress.learnPoints || 0}
+            onQuizPass={handleQuizPass}
           />
         )}
 
