@@ -200,7 +200,7 @@ function deriveInsight({
       return parseInt(worst[0]);
     })();
     return {
-      icon: 'spray-outline',
+      icon: 'water-outline',
       label: 'CLEANING INSIGHT',
       title: weakFreq && weakFreq >= 8000
         ? `You struggled at ${weakFreq} Hz last test. Dirty mesh reduces high-frequency output.`
@@ -611,7 +611,7 @@ export default function HomeScreen({
         </View>
 
         <Text style={{ color: '#8aa18f', fontSize: 12, marginTop: 14, lineHeight: 18 }}>
-          Finish all three tasks in one day to move 1 day farther down the trophy road.
+          Complete the hearing test and learn quiz each day to keep your streak. Cleaning is weekly.
         </Text>
       </View>
 

@@ -415,7 +415,7 @@ export default function SettingsScreen({ user, progress, onSaveUsername, onLogou
       </Text>
       <View style={{ flexDirection: 'row', marginBottom: 4 }}>
         <StatTile
-          icon="spray-outline"
+          icon="water-outline"
           label="Cleanings"
           value={progress.totalCleanings}
           sub="sessions done"

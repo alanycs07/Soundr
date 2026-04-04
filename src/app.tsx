@@ -20,6 +20,7 @@ import {
   FREQUENCIES,
   HearingEntry,
   HearingResponse,
+  SoundRating,
   TABS,
   TabName,
 } from './store/appStore';
@@ -150,10 +151,17 @@ export default function App() {
   }, [progress.streak]);
 
   const todayKey = getTodayKey();
+  const daysSinceLastClean: number | null = progress.lastCleanDate
+    ? Math.floor(
+        (new Date(todayKey).getTime() - new Date(progress.lastCleanDate).getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : null;
   const todayStatus = progress.dailyStatus[todayKey] || {
     hearingDone: false,
     cleaningDone: false,
     streakAwarded: false,
+    learnQuizDone: false,
   };
 
   const completedFrequencyCount = useMemo(() => {
@@ -242,11 +250,15 @@ export default function App() {
       hearingDone: false,
       cleaningDone: false,
       streakAwarded: false,
+      learnQuizDone: false,
     };
 
     let nextProgress = { ...incomingProgress };
 
-    if (todayEntry.hearingDone && todayEntry.cleaningDone && !todayEntry.streakAwarded) {
+    // Streak gate: hearing test + learn quiz must both be done.
+    // Cleaning is a weekly habit — it contributes to totalCleanings but
+    // is not required daily so it does not block the streak.
+    if (todayEntry.hearingDone && todayEntry.learnQuizDone && !todayEntry.streakAwarded) {
       let nextStreak = 1;
 
       if (nextProgress.lastCompletedDate === yesterday) {
@@ -283,6 +295,7 @@ export default function App() {
       hearingDone: false,
       cleaningDone: false,
       streakAwarded: false,
+      learnQuizDone: false,
     };
 
     const nextProgress: AppProgress = {
@@ -312,6 +325,7 @@ export default function App() {
       hearingDone: false,
       cleaningDone: false,
       streakAwarded: false,
+      learnQuizDone: false,
     };
 
     const nextProgress: AppProgress = {
@@ -465,8 +479,27 @@ export default function App() {
     animateToCleaningStep(0);
   };
 
-  const handleFinishCleaning = async () => {
+  const handleFinishCleaning = async (beforeRating: number, afterRating: number) => {
     await markCleaningCompleteForToday();
+
+    // Save sound rating + lastCleanDate
+    if (user) {
+      const current = await getProgress(user.username);
+      const entry: SoundRating = {
+        date: getTodayKey(),
+        before: beforeRating,
+        after: afterRating,
+        delta: afterRating - beforeRating,
+      };
+      const nextProgress = {
+        ...current,
+        lastCleanDate: getTodayKey(),
+        soundRatingHistory: [...(current.soundRatingHistory || []), entry],
+      };
+      setProgress(nextProgress);
+      await saveProgress(user.username, nextProgress);
+    }
+
     setCurrentTab('home');
   };
 
@@ -559,8 +592,8 @@ export default function App() {
         [today]: { ...todayEntry, learnQuizDone: true },
       },
     };
-    setProgress(nextProgress);
-    await saveProgress(user.username, nextProgress);
+    // Also check if hearing is already done — if so, award the streak now
+    await awardDailyStreakIfEligible(nextProgress);
   };
 
   const handleLogout = async () => {
@@ -640,7 +673,8 @@ export default function App() {
             prevCleaningStep={prevCleaningStep}
             restartCleaning={restartCleaning}
             onFinishCleaning={handleFinishCleaning}
-            isPro={user.mode === 'pro'}
+            totalCleanings={progress.totalCleanings}
+            daysSinceLastClean={daysSinceLastClean}
           />
         )}
 

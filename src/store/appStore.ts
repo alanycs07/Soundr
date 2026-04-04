@@ -31,6 +31,15 @@ export type CleaningCard = {
   title: string;
   body: string;
   cta?: string;
+  timerSeconds?: number; // if set, a countdown runs before Next appears
+  tip?: string;          // rotating fact shown on this step
+};
+
+export type SoundRating = {
+  date: string;
+  before: number; // 1-5
+  after: number;  // 1-5
+  delta: number;  // after - before
 };
 
 export type UserMode = 'basic' | 'pro';
@@ -62,9 +71,11 @@ export type AppProgress = {
   totalCleanings: number;
   totalHearingTests: number;
   lastCompletedDate: string | null;
+  lastCleanDate: string | null;       // date of most recent cleaning session
   dailyStatus: Record<string, DailyTaskStatus>;
   hearingHistory: HearingEntry[];
-  learnPoints: number;   // cumulative quiz pass points
+  soundRatingHistory: SoundRating[];  // before/after sound clarity ratings
+  learnPoints: number;
 };
 
 // ─── Article + Quiz content ───────────────────────────────────────────────────
@@ -512,6 +523,24 @@ export const EDUCATIONAL_FACTS = [
   'Clean ears gently and avoid forcing objects deep into the ear canal.',
 ];
 
+
+// ─── Cleaning tips pool — rotate by totalCleanings count ─────────────────────
+
+export const CLEANING_TIPS: string[] = [
+  'Earwax buildup on mesh can reduce high-frequency output by up to 12 dB.',
+  'Hold the earbud mesh-down while brushing so debris falls away, not deeper in.',
+  'The ear canal self-cleans — earbuds slow that process by trapping wax.',
+  'Studies found bacteria on every sampled headset device tested clinically.',
+  'Dirty earbuds can cause users to raise volume, increasing noise exposure risk.',
+  'Isopropyl alcohol evaporates quickly and leaves no residue on hard surfaces.',
+  'Clean silicone ear tips weekly — moisture and oils degrade the seal over time.',
+  'Your hearing test score correlates with how cleanly sound reaches the driver.',
+  'Microfiber cloths trap oils without scratching — paper towels scratch coatings.',
+  'The charging case accumulates debris too — clean the wells with a dry brush.',
+  'Consistent cleaning extends earbud lifespan by preventing mesh corrosion.',
+  'Earbuds generate warmth — the perfect environment for bacterial growth.',
+];
+
 export const CLEANING_CARDS: CleaningCard[] = [
   {
     title: 'Ready to clean?',
@@ -520,35 +549,40 @@ export const CLEANING_CARDS: CleaningCard[] = [
   },
   {
     title: 'Open your sanitation kit',
-    body: 'You should have a cleaning tool, microfiber cloth, bamboo brush, and isopropyl alcohol cleaning fluid.',
+    body: 'You should have your microfiber cloth, bamboo brush, and isopropyl alcohol cleaning fluid ready.',
   },
   {
     title: 'Brush the mesh',
-    body: 'Spray the bamboo brush with the alcohol and hold the AirPod with the mesh facing up and brush in circles for about 15 seconds.',
+    body: 'Spray the bamboo brush lightly with alcohol. Hold the earbud mesh-facing-down and brush in gentle circles. The 15-second timer will run — keep brushing until it finishes.',
+    timerSeconds: 15,
   },
   {
     title: 'Blot the mesh',
-    body: 'Flip the AirPod and blot the mesh on our cloth, ensuring contact. Repeat this process three times total for each mesh.',
+    body: 'Flip the earbud and blot the mesh firmly onto your cloth. Repeat three times per earbud to lift loosened debris.',
+    timerSeconds: 10,
   },
   {
     title: 'Clean the charging port',
-    body: 'Use our tool to scrape out any grime from the charging port.',
+    body: 'Use the cleaning tool to gently clear any debris from the charging port. Work slowly and avoid forcing anything.',
   },
   {
-    title: 'Remove residue',
-    body: 'Rinse the brush with distilled water, then repeat the brushing and blotting steps with distilled water to remove residue.',
+    title: 'Rinse with distilled water',
+    body: 'Rinse your brush with distilled water, then repeat the brushing and blotting steps to remove any alcohol residue.',
+    timerSeconds: 15,
   },
   {
     title: 'Clean the charging case',
-    body: 'Clean the insides of the charging case with the bamboo brush.',
+    body: 'Use the dry brush to clean the inside of the charging case, including the charging wells. Hold it opening-down so debris falls out.',
+    timerSeconds: 10,
   },
   {
     title: 'Final wipe',
-    body: 'Wipe everything with the cleaning cloth.',
+    body: 'Wipe all exterior surfaces — earbuds and case — with the microfiber cloth.',
+    timerSeconds: 10,
   },
   {
-    title: 'Congratulations, you are done!',
-    body: 'Let the AirPods dry completely before use. Once everything is fully dry, place them back in the case.',
+    title: 'All done — let them dry.',
+    body: 'Leave your earbuds out of the case for a few minutes to air dry completely before use.',
     cta: 'Finish Cleaning',
   },
 ];
@@ -568,7 +602,9 @@ export const DEFAULT_PROGRESS: AppProgress = {
   totalCleanings: 0,
   totalHearingTests: 0,
   lastCompletedDate: null,
+  lastCleanDate: null,
   dailyStatus: {},
   hearingHistory: [],
+  soundRatingHistory: [],
   learnPoints: 0,
 };
