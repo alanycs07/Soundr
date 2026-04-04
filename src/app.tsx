@@ -603,6 +603,10 @@ export default function App() {
             setShowArenaMap={setShowArenaMap}
             todayHearingDone={todayStatus.hearingDone}
             todayCleaningDone={todayStatus.cleaningDone}
+            todayLearnDone={todayStatus.learnQuizDone ?? false}
+            hearingHistory={progress.hearingHistory || []}
+            totalCleanings={progress.totalCleanings}
+            learnPoints={progress.learnPoints || 0}
           />
         )}
 

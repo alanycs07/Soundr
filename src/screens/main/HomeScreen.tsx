@@ -1,8 +1,239 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { ARENA_DAYS, ARENAS } from '../../store/appStore';
-import HoverButton from '../../components/HoverButton';
+import { ARENA_DAYS, ARENAS, HearingEntry } from '../../store/appStore';
+
+// ─── Insight card ─────────────────────────────────────────────────────────────
+
+function InsightCard({
+  streak,
+  hearingHistory,
+  totalCleanings,
+  todayHearingDone,
+  todayCleaningDone,
+  todayLearnDone,
+  learnPoints,
+}: {
+  streak: number;
+  hearingHistory: HearingEntry[];
+  totalCleanings: number;
+  todayHearingDone: boolean;
+  todayCleaningDone: boolean;
+  todayLearnDone: boolean;
+  learnPoints: number;
+}) {
+  const insight = deriveInsight({
+    streak,
+    hearingHistory,
+    totalCleanings,
+    todayHearingDone,
+    todayCleaningDone,
+    todayLearnDone,
+    learnPoints,
+  });
+
+  if (!insight) return null;
+
+  return (
+    <View
+      style={{
+        backgroundColor: '#161d18',
+        borderRadius: 18,
+        padding: 18,
+        marginBottom: 28,
+        borderWidth: 1.5,
+        borderColor: insight.accent ? '#00ff00' : '#2b4330',
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+      }}
+    >
+      <View
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: 12,
+          backgroundColor: insight.accent ? 'rgba(0,255,0,0.12)' : 'rgba(138,161,143,0.1)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginRight: 14,
+          marginTop: 2,
+          borderWidth: 1,
+          borderColor: insight.accent ? '#2b4330' : '#222',
+        }}
+      >
+        <Ionicons
+          name={insight.icon as any}
+          size={19}
+          color={insight.accent ? '#00ff00' : '#8aa18f'}
+        />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            color: insight.accent ? '#00ff00' : '#8aa18f',
+            fontSize: 10,
+            fontWeight: '900',
+            letterSpacing: 1.2,
+            marginBottom: 5,
+          }}
+        >
+          {insight.label}
+        </Text>
+        <Text
+          style={{
+            color: '#ffffff',
+            fontSize: 14,
+            fontWeight: '700',
+            lineHeight: 21,
+            marginBottom: insight.sub ? 6 : 0,
+          }}
+        >
+          {insight.title}
+        </Text>
+        {!!insight.sub && (
+          <Text style={{ color: '#8aa18f', fontSize: 12, lineHeight: 18 }}>
+            {insight.sub}
+          </Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+type InsightData = {
+  icon: string;
+  label: string;
+  title: string;
+  sub?: string;
+  accent: boolean;
+};
+
+function deriveInsight({
+  streak,
+  hearingHistory,
+  totalCleanings,
+  todayHearingDone,
+  todayCleaningDone,
+  todayLearnDone,
+  learnPoints,
+}: {
+  streak: number;
+  hearingHistory: HearingEntry[];
+  totalCleanings: number;
+  todayHearingDone: boolean;
+  todayCleaningDone: boolean;
+  todayLearnDone: boolean;
+  learnPoints: number;
+}): InsightData | null {
+
+  if (todayHearingDone && todayCleaningDone && todayLearnDone) {
+    return {
+      icon: 'checkmark-circle-outline',
+      label: 'ALL DONE TODAY',
+      title: `You've completed all three tasks. Streak locked in.`,
+      sub: 'Come back tomorrow to keep the momentum going.',
+      accent: true,
+    };
+  }
+
+  if (hearingHistory.length >= 2) {
+    const latest = hearingHistory[hearingHistory.length - 1];
+    const prev = hearingHistory[hearingHistory.length - 2];
+    const delta = latest.score - prev.score;
+
+    if (delta <= -5) {
+      return {
+        icon: 'trending-down-outline',
+        label: 'HEARING INSIGHT',
+        title: `Your score dropped ${Math.abs(delta)} points since your last test.`,
+        sub: totalCleanings === 0
+          ? `You haven't logged a cleaning yet. Dirty mesh can muffle high frequencies.`
+          : `Try cleaning your earbuds before your next test — buildup attenuates high-end clarity.`,
+        accent: false,
+      };
+    }
+
+    if (delta >= 5) {
+      return {
+        icon: 'trending-up-outline',
+        label: 'HEARING INSIGHT',
+        title: `Your score improved by ${delta} points since last time.`,
+        sub: totalCleanings > 0
+          ? `${totalCleanings} cleaning${totalCleanings !== 1 ? 's' : ''} logged — consistent maintenance is paying off.`
+          : undefined,
+        accent: true,
+      };
+    }
+  }
+
+  if (streak > 0 && streak % 7 === 0) {
+    return {
+      icon: 'flame-outline',
+      label: 'STREAK MILESTONE',
+      title: `${streak}-day streak — ${streak / 7} week${streak / 7 !== 1 ? 's' : ''} of consistent ear care.`,
+      sub: `Your hearing and hygiene habits are building into something real.`,
+      accent: true,
+    };
+  }
+
+  if (!todayHearingDone && totalCleanings >= 3) {
+    const latestScore = hearingHistory.length > 0
+      ? hearingHistory[hearingHistory.length - 1].score
+      : null;
+    return {
+      icon: 'headset-outline',
+      label: 'HEARING CHECK',
+      title: latestScore !== null
+        ? `Last score: ${latestScore}. Take today's test to track your trend.`
+        : `You've been cleaning consistently. Take your hearing test to see if it's making a difference.`,
+      sub: undefined,
+      accent: false,
+    };
+  }
+
+  if (totalCleanings === 0 && hearingHistory.length > 0) {
+    const weakFreq = (() => {
+      const last = hearingHistory[hearingHistory.length - 1];
+      if (!last.frequencyResults) return null;
+      const entries = Object.entries(last.frequencyResults);
+      const worst = entries.reduce((a, b) => (b[1] < a[1] ? b : a), entries[0]);
+      return parseInt(worst[0]);
+    })();
+    return {
+      icon: 'spray-outline',
+      label: 'CLEANING INSIGHT',
+      title: weakFreq && weakFreq >= 8000
+        ? `You struggled at ${weakFreq} Hz last test. Dirty mesh reduces high-frequency output.`
+        : `Clean earbuds deliver measurably better sound. Try your first cleaning session.`,
+      sub: `Studies show fouled mesh can attenuate treble by 6-12 dB.`,
+      accent: false,
+    };
+  }
+
+  if (learnPoints >= 30 && !todayLearnDone) {
+    return {
+      icon: 'book-outline',
+      label: 'LEARN',
+      title: `${learnPoints} learn points earned so far. Today's article is waiting.`,
+      sub: undefined,
+      accent: false,
+    };
+  }
+
+  if (streak === 0 && hearingHistory.length === 0 && totalCleanings === 0) {
+    return {
+      icon: 'sparkles-outline',
+      label: 'GET STARTED',
+      title: `Take your first hearing test, clean your earbuds, and read today's article to begin your streak.`,
+      sub: undefined,
+      accent: false,
+    };
+  }
+
+  return null;
+}
+
+
 
 type Props = {
   streak: number;
@@ -12,6 +243,10 @@ type Props = {
   setShowArenaMap: (value: boolean) => void;
   todayHearingDone: boolean;
   todayCleaningDone: boolean;
+  todayLearnDone: boolean;
+  hearingHistory: HearingEntry[];
+  totalCleanings: number;
+  learnPoints: number;
 };
 
 const DAYS_PER_SEGMENT = 5;
@@ -190,6 +425,10 @@ export default function HomeScreen({
   setShowArenaMap,
   todayHearingDone,
   todayCleaningDone,
+  todayLearnDone,
+  hearingHistory,
+  totalCleanings,
+  learnPoints,
 }: Props) {
   const [selectedArenaId, setSelectedArenaId] = useState(currentArena);
 
@@ -341,15 +580,8 @@ export default function HomeScreen({
           </View>
         </View>
 
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>
-            Cleaning guide
-          </Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>Cleaning guide</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Ionicons
               name={todayCleaningDone ? 'checkmark-circle-outline' : 'ellipse-outline'}
@@ -357,29 +589,41 @@ export default function HomeScreen({
               color={todayCleaningDone ? '#00ff00' : '#888'}
               style={{ marginRight: 6 }}
             />
-            <Text
-              style={{
-                color: todayCleaningDone ? '#00ff00' : '#888',
-                fontSize: 14,
-                fontWeight: '900',
-              }}
-            >
+            <Text style={{ color: todayCleaningDone ? '#00ff00' : '#888', fontSize: 14, fontWeight: '900' }}>
               {todayCleaningDone ? 'DONE' : 'NOT DONE'}
             </Text>
           </View>
         </View>
 
-        <Text
-          style={{
-            color: '#8aa18f',
-            fontSize: 12,
-            marginTop: 14,
-            lineHeight: 18,
-          }}
-        >
-          Finish both tasks in one day to move 1 day farther down the trophy road.
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>Learn quiz</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons
+              name={todayLearnDone ? 'checkmark-circle-outline' : 'ellipse-outline'}
+              size={16}
+              color={todayLearnDone ? '#00ff00' : '#888'}
+              style={{ marginRight: 6 }}
+            />
+            <Text style={{ color: todayLearnDone ? '#00ff00' : '#888', fontSize: 14, fontWeight: '900' }}>
+              {todayLearnDone ? 'DONE' : 'NOT DONE'}
+            </Text>
+          </View>
+        </View>
+
+        <Text style={{ color: '#8aa18f', fontSize: 12, marginTop: 14, lineHeight: 18 }}>
+          Finish all three tasks in one day to move 1 day farther down the trophy road.
         </Text>
       </View>
+
+      <InsightCard
+        streak={streak}
+        hearingHistory={hearingHistory}
+        totalCleanings={totalCleanings}
+        todayHearingDone={todayHearingDone}
+        todayCleaningDone={todayCleaningDone}
+        todayLearnDone={todayLearnDone}
+        learnPoints={learnPoints}
+      />
 
       {showArenaMap && (
         <View
