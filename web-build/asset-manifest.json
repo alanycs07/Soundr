@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.js": "/static/js/main.c594dd53.js",
+    "static/js/14.28d626de.js": "/static/js/14.28d626de.js",
+    "static/media/MaterialCommunityIcons.ttf": "/static/media/MaterialCommunityIcons.5d42b4e60858731e7b65.ttf",
+    "static/media/Ionicons.ttf": "/static/media/Ionicons.9b6b1954a5eb6efeaf11.ttf",
+    "index.html": "/index.html",
+    "manifest.json": "/manifest.json",
+    "serve.json": "/serve.json",
+    "main.c594dd53.js.map": "/static/js/main.c594dd53.js.map",
+    "14.28d626de.js.map": "/static/js/14.28d626de.js.map"
+  },
+  "entrypoints": [
+    "static/js/14.28d626de.js",
+    "static/js/main.c594dd53.js"
+  ]
+}

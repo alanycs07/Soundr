@@ -1,0 +1,21 @@
+{
+  "description": "Soundr - Complete earbud cleaning and hearing health app",
+  "display": "standalone",
+  "lang": "en",
+  "name": "Soundr",
+  "short_name": "Soundr",
+  "start_url": "/?utm_source=web_app_manifest",
+  "orientation": "portrait",
+  "related_applications": [
+    {
+      "platform": "itunes",
+      "id": "com.soundr.app"
+    },
+    {
+      "platform": "play",
+      "url": "http://play.google.com/store/apps/details?id=com.soundr.app",
+      "id": "com.soundr.app"
+    }
+  ],
+  "prefer_related_applications": true
+}
