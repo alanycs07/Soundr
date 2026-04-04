@@ -476,6 +476,9 @@ function QuizView({
   const [selected, setSelected] = useState<number | null>(null);
   const [answerState, setAnswerState] = useState<AnswerState>('unanswered');
   const [correctCount, setCorrectCount] = useState(0);
+  // Ref mirrors correctCount so handleNext always reads the synchronous value,
+  // avoiding the stale-state bug where the last answer's increment hasn't flushed.
+  const correctCountRef = useRef(0);
 
   const current = questions[qIndex];
   const isLast = qIndex === questions.length - 1;
@@ -485,13 +488,16 @@ function QuizView({
     setSelected(i);
     const correct = i === current.correctIndex;
     setAnswerState(correct ? 'correct' : 'wrong');
-    if (correct) setCorrectCount((c) => c + 1);
+    if (correct) {
+      correctCountRef.current += 1;
+      setCorrectCount(correctCountRef.current);
+    }
   };
 
   const handleNext = () => {
-    const finalCorrect = correctCount + (answerState === 'correct' && isLast ? 0 : 0);
     if (isLast) {
-      const pct = Math.round((correctCount / questions.length) * 100);
+      // Use the ref — always reflects the true count including the last answer
+      const pct = Math.round((correctCountRef.current / questions.length) * 100);
       onComplete(pct >= 75, pct);
     } else {
       setQIndex((i) => i + 1);

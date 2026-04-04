@@ -653,6 +653,7 @@ export default function App() {
         {currentTab === 'account' && (
           <SettingsScreen
             user={user}
+            progress={progress}
             onSaveUsername={saveUsername}
             onLogout={handleLogout}
           />
