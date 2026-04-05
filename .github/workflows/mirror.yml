@@ -15,5 +15,5 @@ jobs:
 
       - name: Push to McMuf repo
         run: |
-          git remote add mcmuf https://x-access-token:${{ secrets.MCMUF_TOKEN }}@github.com/McMuf/soundrfinal.git
+          git remote add mcmuf https://McMuf:${{ secrets.MCMUF_TOKEN }}@github.com/McMuf/soundrfinal.git
           git push mcmuf main --force
