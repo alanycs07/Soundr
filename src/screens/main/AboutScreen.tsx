@@ -8,13 +8,13 @@ const TEAM = [
   {
     name: 'Daniel Lei',
     role: 'President & CEO',
-    focus: 'Product strategy, financial planning, and investor relations.',
+    focus: 'Product strategy, financial planning, and head of app development.',
     initials: 'DL',
   },
   {
     name: 'Alan Sun',
     role: 'Vice President',
-    focus: 'App development, technical architecture, and engineering.',
+    focus: 'App development, production technician, and management overseer.',
     initials: 'AS',
   },
   {
@@ -68,7 +68,7 @@ const FEATURES = [
   {
     icon: 'book-outline',
     title: 'Daily Learn',
-    body: `AI-generated articles on ear health research, with a quiz that awards points toward your trophy road.`,
+    body: `Articles on ear health research, with a quiz that awards points toward your trophy road.`,
   },
   {
     icon: 'flame-outline',
