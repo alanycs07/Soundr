@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { AppUser, EDUCATIONAL_FACTS, UserMode } from '../../store/appStore';
 import {
   isUsernameTaken,
@@ -7,10 +14,12 @@ import {
   confirmCodeRedemption,
   verifyLogin,
 } from '../../store/userStorage';
-import HoverButton from '../../components/HoverButton';
 
 type AuthStage = 'splash' | 'choice' | 'code' | 'username' | 'login';
-type Props = { onComplete: (user: AppUser, options?: { isLogin?: boolean }) => void };
+
+type Props = {
+  onComplete: (user: AppUser, options?: { isLogin?: boolean }) => void;
+};
 
 export default function OnboardingScreen({ onComplete }: Props) {
   const [stage, setStage] = useState<AuthStage>('splash');
@@ -41,11 +50,12 @@ export default function OnboardingScreen({ onComplete }: Props) {
     );
     pulse.start();
     const timer = setTimeout(() => {
-      Animated.timing(fadeAnim, { toValue: 0, duration: 450, useNativeDriver: true }).start(
-        () => setStage('choice')
-      );
+      Animated.timing(fadeAnim, { toValue: 0, duration: 450, useNativeDriver: true }).start(() => setStage('choice'));
     }, 2200);
-    return () => { clearTimeout(timer); pulse.stop(); };
+    return () => {
+      clearTimeout(timer);
+      pulse.stop();
+    };
   }, [fadeAnim, logoAnim]);
 
   const submitCode = async () => {
@@ -53,7 +63,11 @@ export default function OnboardingScreen({ onComplete }: Props) {
     setIsLoading(true);
     const result = await redeemKitCode(code);
     setIsLoading(false);
-    if (!result.success) { setCodeError(result.reason || 'Could not redeem code.'); return; }
+
+    if (!result.success) {
+      setCodeError(result.reason || 'Could not redeem code.');
+      return;
+    }
     setPendingMode('pro');
     setStage('username');
   };
@@ -62,15 +76,25 @@ export default function OnboardingScreen({ onComplete }: Props) {
     const finalUsername = username.trim();
     const finalPassword = password.trim();
     setErrorMsg('');
+
     if (!finalUsername || finalPassword.length < 4) {
       setErrorMsg('Username is required and password must be at least 4 characters.');
       return;
     }
+
     setIsLoading(true);
     const taken = await isUsernameTaken(finalUsername);
     setIsLoading(false);
-    if (taken) { setErrorMsg('That username is already taken. Try logging in instead.'); return; }
-    if (pendingMode === 'pro' && code) await confirmCodeRedemption(code);
+
+    if (taken) {
+      setErrorMsg('That username is already taken. Try logging in instead.');
+      return;
+    }
+
+    if (pendingMode === 'pro' && code) {
+      await confirmCodeRedemption(code);
+    }
+
     onComplete({
       username: finalUsername,
       password: finalPassword,
@@ -83,11 +107,21 @@ export default function OnboardingScreen({ onComplete }: Props) {
     setErrorMsg('');
     const finalName = loginName.trim();
     const finalPass = loginPassword.trim();
-    if (!finalName || !finalPass) { setErrorMsg('Please enter your username and password.'); return; }
+
+    if (!finalName || !finalPass) {
+      setErrorMsg('Please enter your username and password.');
+      return;
+    }
+
     setIsLoading(true);
     const result = await verifyLogin(finalName, finalPass);
     setIsLoading(false);
-    if (!result.success) { setErrorMsg(result.reason || 'Login failed.'); return; }
+
+    if (!result.success) {
+      setErrorMsg(result.reason || 'Login failed.');
+      return;
+    }
+
     onComplete(result.user!, { isLogin: true });
   };
 
@@ -112,45 +146,49 @@ export default function OnboardingScreen({ onComplete }: Props) {
     <View style={{ flex: 1, backgroundColor: '#0f0f1e', paddingHorizontal: 22, justifyContent: 'center', alignItems: 'center' }}>
       {stage === 'choice' && (
         <View style={{ width: '100%', alignItems: 'center' }}>
-          <Text style={{ fontSize: 58, fontWeight: '900', color: '#ffffff', marginBottom: 26 }}>
-            Sound<Text style={{ color: '#00ff00' }}>r.</Text>
-          </Text>
-          <HoverButton label="Create Basic Account" onPress={() => { setPendingMode('basic'); setStage('username'); }} style={{ width: 270, marginBottom: 12 }} />
-          <HoverButton label="Enter a Kit Code" onPress={() => setStage('code')} style={{ width: 270, marginBottom: 12 }} />
-          <HoverButton label="Login to Existing Account" onPress={() => setStage('login')} style={{ width: 270, marginBottom: 12 }} />
+          <Text style={{ fontSize: 58, fontWeight: '900', color: '#ffffff', marginBottom: 26 }}>Sound<Text style={{ color: '#00ff00' }}>r.</Text></Text>
+          <TouchableOpacity onPress={() => { setPendingMode('basic'); setStage('username'); }} style={btnStyle(false)}><Text style={btnTxt(false)}>Create Basic Account</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => setStage('code')} style={btnStyle(false)}><Text style={btnTxt(false)}>Enter a Kit Code</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => setStage('login')} style={btnStyle(false)}><Text style={btnTxt(false)}>Login to Existing Account</Text></TouchableOpacity>
         </View>
       )}
 
       {stage === 'code' && (
         <View style={{ width: '100%' }}>
           <Text style={head}>Enter kit code</Text>
-          <TextInput value={code} onChangeText={setCode} keyboardType="number-pad" placeholder="______" placeholderTextColor="#8aa18f" style={inputStyle} />
+          <TextInput value={code} onChangeText={setCode} keyboardType="number-pad" placeholder="______" placeholderTextColor="#8aa18f" style={input} />
           {!!codeError && <Text style={err}>{codeError}</Text>}
-          <HoverButton label={isLoading ? <ActivityIndicator color="#000" /> : 'Redeem Code'} onPress={submitCode} primary style={{ marginBottom: 12 }} />
-          <Text onPress={() => setStage('choice')} style={back}>← Back</Text>
+          <TouchableOpacity onPress={submitCode} style={btnStyle(true)}>{isLoading ? <ActivityIndicator color="#000" /> : <Text style={btnTxt(true)}>Redeem Code</Text>}</TouchableOpacity>
+          <TouchableOpacity onPress={() => setStage('choice')}><Text style={back}>← Back</Text></TouchableOpacity>
         </View>
       )}
 
       {(stage === 'username' || stage === 'login') && (
         <View style={{ width: '100%' }}>
           <Text style={head}>{stage === 'username' ? 'Sign Up' : 'Login'}</Text>
-          <TextInput value={stage === 'username' ? username : loginName} onChangeText={stage === 'username' ? setUsername : setLoginName} placeholder="Username" placeholderTextColor="#8aa18f" style={inputStyle} />
-          <TextInput value={stage === 'username' ? password : loginPassword} onChangeText={stage === 'username' ? setPassword : setLoginPassword} secureTextEntry placeholder="Password" placeholderTextColor="#8aa18f" style={inputStyle} />
+          {stage === 'login' && (
+            <View style={{ backgroundColor: '#1a1a2e', borderRadius: 12, padding: 12, marginBottom: 16, borderLeftWidth: 3, borderLeftColor: '#2b4330' }}>
+              <Text style={{ color: '#8aa18f', fontSize: 12, lineHeight: 18 }}>
+                ⚠ Accounts are saved to this device only. If you created your account on a different device or browser, you'll need to create a new one here.
+              </Text>
+            </View>
+          )}
+          <TextInput value={stage === 'username' ? username : loginName} onChangeText={stage === 'username' ? setUsername : setLoginName} placeholder="Username" placeholderTextColor="#8aa18f" style={input} />
+          <TextInput value={stage === 'username' ? password : loginPassword} onChangeText={stage === 'username' ? setPassword : setLoginPassword} secureTextEntry placeholder="Password" placeholderTextColor="#8aa18f" style={input} />
           {!!errorMsg && <Text style={err}>{errorMsg}</Text>}
-          <HoverButton
-            label={isLoading ? <ActivityIndicator color="#000" /> : stage === 'username' ? 'Create Account' : 'Login'}
-            onPress={stage === 'username' ? finishProfile : loginToExistingAccount}
-            primary
-            style={{ marginBottom: 12 }}
-          />
-          <Text onPress={() => setStage('choice')} style={back}>← Back</Text>
+          <TouchableOpacity onPress={stage === 'username' ? finishProfile : loginToExistingAccount} style={btnStyle(true)}>
+            {isLoading ? <ActivityIndicator color="#000" /> : <Text style={btnTxt(true)}>{stage === 'username' ? 'Create Account' : 'Login'}</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setStage('choice')}><Text style={back}>← Back</Text></TouchableOpacity>
         </View>
       )}
     </View>
   );
 }
 
+const btnStyle = (f: boolean) => ({ width: 270, backgroundColor: f ? '#00ff00' : '#1a1a2e', borderRadius: 16, paddingVertical: 16, alignItems: 'center' as const, marginBottom: 12, borderWidth: 1.5, borderColor: f ? '#00ff00' : '#2b4330' });
+const btnTxt = (f: boolean) => ({ color: f ? '#000' : '#fff', fontWeight: '800' as const, fontSize: 15 });
 const head = { fontSize: 36, fontWeight: '900' as const, color: '#fff', marginBottom: 20 };
-const inputStyle = { backgroundColor: '#1a1a2e', borderRadius: 16, color: '#fff', fontSize: 18, padding: 18, marginBottom: 12, borderWidth: 1.5, borderColor: '#2b4330' };
+const input = { backgroundColor: '#1a1a2e', borderRadius: 16, color: '#fff', fontSize: 18, padding: 18, marginBottom: 12, borderWidth: 1.5, borderColor: '#2b4330' };
 const err = { color: '#ff8d8d', fontSize: 13, marginBottom: 16, fontWeight: '600' as const };
 const back = { color: '#8aa18f', fontWeight: '700' as const, textAlign: 'center' as const, marginTop: 10 };
