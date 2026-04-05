@@ -161,24 +161,24 @@ export default function SettingsScreen({ user, progress, onSaveUsername, onLogou
 
   // Derived stats
   const avgHearingScore =
-    progress.hearingHistory.length > 0
+    (progress.hearingHistory || []).length > 0
       ? Math.round(
-          progress.hearingHistory.reduce((sum, e) => sum + e.score, 0) /
-            progress.hearingHistory.length
+          (progress.hearingHistory || []).reduce((sum, e) => sum + e.score, 0) /
+            (progress.hearingHistory || []).length
         )
       : null;
 
   const bestHearingScore =
-    progress.hearingHistory.length > 0
-      ? Math.max(...progress.hearingHistory.map((e) => e.score))
+    (progress.hearingHistory || []).length > 0
+      ? Math.max(...(progress.hearingHistory || []).map((e) => e.score))
       : null;
 
-  const quizzesPassed = Object.values(progress.dailyStatus).filter(
+  const quizzesPassed = Object.values(progress.dailyStatus || {}).filter(
     (d) => d.learnQuizDone
   ).length;
 
   const longestStreak = (() => {
-    const dates = Object.entries(progress.dailyStatus)
+    const dates = Object.entries(progress.dailyStatus || {})
       .filter(([, v]) => v.streakAwarded)
       .map(([k]) => k)
       .sort();
@@ -405,7 +405,7 @@ export default function SettingsScreen({ user, progress, onSaveUsername, onLogou
       {/* Hearing trend */}
       {progress.hearingHistory.length > 0 && (
         <View style={{ marginTop: 12 }}>
-          <HearingTrendBar history={progress.hearingHistory} />
+          <HearingTrendBar history={progress.hearingHistory || []} />
         </View>
       )}
 
