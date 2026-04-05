@@ -1,0 +1,19 @@
+name: Mirror to McMuf
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Push to McMuf repo
+        run: |
+          git remote add mcmuf https://x-access-token:${{ secrets.MCMUF_TOKEN }}@github.com/McMuf/soundrfinal.git
+          git push mcmuf main --force
